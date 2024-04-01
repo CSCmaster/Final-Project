@@ -1,5 +1,4 @@
-# Predicting the Outcome of the 2025 Election in Canada: A Regression Analysis Suggests Transition from Trudeau's Leadership to a Conservative Government
-
+# Predicting the Outcome of the 2025 Election in Canada by a Regression Analysis
 ## Overview
 
 This repo provides forecast the 2025 Candian election by regression model.
