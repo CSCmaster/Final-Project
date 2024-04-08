@@ -1,5 +1,5 @@
 ---
-title: "Predicting Participants' Vote Choice Between Conservative and Liberty in the 2025 Election By Binary Linear Regression Model"
+title: "Predicting Probability of Participants' Vote of Conservative and Liberty in 2025 Canadian election "
 title-block-banner: true
 abstract: "ojjojojojljk,mkmk."
 thanks: "Code and data supporting this analysis are available at: https://github.com/CSCmaster/Final-Project"
