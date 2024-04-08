@@ -1,4 +1,4 @@
-# Predicting the Outcome of the 2025 Election in Canada by a Regression Analysis
+# Predicting Probability of Participants' Vote of Conservative and Liberty in 2025 Canadian election
 ## Overview
 
 This repo provides forecast the 2025 Candian election by regression model.
