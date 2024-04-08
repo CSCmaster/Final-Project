@@ -1,5 +1,5 @@
 ---
-title: "Predicting the Outcome of the 2025 Election in Canada by a Regression Analysis"
+title: "Predicting Participants' Vote Choice Between Conservative and Liberty in the 2025 Election By Binary Linear Regression Model"
 title-block-banner: true
 abstract: "ojjojojojljk,mkmk."
 thanks: "Code and data supporting this analysis are available at: https://github.com/CSCmaster/Final-Project"
@@ -25,6 +25,7 @@ library(knitr)
 library(kableExtra)
 library(rstanarm)
 library(arrow)
+library(tidybayes)
 ```
 
 # Introduction
@@ -92,8 +93,10 @@ In this research,the arrow[@arrow]package significantly impacts the way large da
 ## Sample of cleaned Data
 
 ### Data Summary Measures 
-Table 1: Summary varibales in Census and Survey Data
-```{r echo=FALSE}
+```{r}
+#| label: tbl-data-summary
+#| tbl-cap: Summary of Numerical Variables Across Census and Survey Data
+#| echo: false
 numeric_summary_df <- data.frame(
   Variable = c("Age in Census Data", "Age in Survey Data", 
                "Liberal Votes in Survey", "Conservative Votes in Survey"),
@@ -105,11 +108,10 @@ numeric_summary_df <- data.frame(
   Maximum = c(80.0, 97.0, 1.000, 1.000)
 )
 
-knitr::kable(numeric_summary_df, caption = "Summary of Numerical Variables Across Census and Survey Data")
-
+knitr::kable(numeric_summary_df)
 ```
 
-The statistical summary of the census and survey data reveals age distributions with the census data capturing a narrower age range (15 to 80 years, with a median of 54) compared to the broader age span in the survey data (18 to 97 years, with a median of 53). The average ages for the census and survey populations are 52.18 and 51.3 years, respectively. Voting data from the survey indicate that a quarter of the respondents are inclined towards the Liberal Party, as shown by an average of 0.267, while a slightly lower average of 0.249 suggests Conservative support; both parties have 50% of the population not voting for them, with a median of 0. The upper bounds for Liberal and Conservative votes are 1, meaning some respondents indicated a vote for these parties, while the third quartile for Conservative votes indicates less overall support compared to the Liberal Party.
+@tbl-data-summary summaries the census and survey data reveals age distributions with the census data capturing a narrower age range (15 to 80 years, with a median of 54) compared to the broader age span in the survey data (18 to 97 years, with a median of 53). The average ages for the census and survey populations are 52.18 and 51.3 years, respectively. Voting data from the survey indicate that a quarter of the respondents are inclined towards the Liberal Party, as shown by an average of 0.267, while a slightly lower average of 0.249 suggests Conservative support; both parties have 50% of the population not voting for them, with a median of 0. The upper bounds for Liberal and Conservative votes are 1, meaning some respondents indicated a vote for these parties, while the third quartile for Conservative votes indicates less overall support compared to the Liberal Party.
 
 ### Data Visualization
 
@@ -221,9 +223,8 @@ The bars for the census dataset are colored in a deep red, while the bars for th
 
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-df_long <- pivot_longer(na.omit(survey_data_new), cols = starts_with("vote_"), names_to = "Party", values_to = "Vote")
+df_long <- pivot_longer(na.omit(cleaned_survey_data), cols = starts_with("vote_"), names_to = "Party", values_to = "Vote")
 
-# Plot a grouped bar plot
 ggplot(df_long, aes(x = Party, fill = as.factor(Vote))) +
   geom_bar(position = "dodge", stat = "count") +
   labs(title = "Plot.6 Comparison of Voting Preferences", x = "Party", y = "Count") +
@@ -257,6 +258,31 @@ The last stage incorporated post-stratification to gauge the distribution of vot
 
 ## Model Set-up
 
+We define our Bayesian logistic regression model for the probability of an individual voting for the Liberal/Conservative party as follows:
+
+- $y_i$: Binary outcome of voting for the Liberal/Conservative party (1) or not (0)
+- $\pi_i$: Probability of voting for the Liberal/Conservative party
+
+\begin{align}
+y_i | \pi_i &\sim \text{Bernoulli}(\pi_i) \\
+\text{logit}(\pi_i) &= \beta_0 + \alpha^{age}_{a[i]} + \alpha^{gender}_{g[i]} + \alpha^{province}_{p[i]} + \alpha^{religion}_{r[i]} + \alpha^{income}_{m[i]} + \alpha^{education}_{e[i]} \\
+\beta_0 &\sim \text{Normal}(0, 2.5) \\
+\alpha_{a}^{age} &\sim \text{Normal}(0, \sigma^{2}_{age}) \quad \text{for } a \text{ in } 1, 2, \ldots, A \\
+\alpha_{g}^{gender} &\sim \text{Normal}(0, \sigma^{2}_{gender}) \quad \text{for } g \text{ in } Male,Female \\
+\alpha_{p}^{province} &\sim \text{Normal}(0, \sigma^{2}_{province}) \quad \text{for } p \text{ in } BC, AB, MB, NB, NL, NS, ON, PE, QC, SK \\
+\alpha_{r}^{religion} &\sim \text{Normal}(0, \sigma^{2}_{religion}) \quad \text{for } r \text{ in } YES,NO \\
+\alpha_{m}^{income} &\sim \text{Normal}(0, \sigma^{2}_{income}) \quad \text{for } m \text{ in } Lower Class, Middle Class, Upper Class\\
+\alpha_{e}^{education} &\sim \text{Normal}(0, \sigma^{2}_{education}) \quad \text{for } e \text{ in } Low Education, Some Education, High Education \\
+\sigma^{2}_{age} &\sim \text{Exponential}(1) \\
+\sigma^{2}_{gender} &\sim \text{Exponential}(1) \\
+\sigma^{2}_{province} &\sim \text{Exponential}(1) \\
+\sigma^{2}_{religion} &\sim \text{Exponential}(1) \\
+\sigma^{2}_{income} &\sim \text{Exponential}(1) \\
+\sigma^{2}_{education} &\sim \text{Exponential}(1) 
+\end{align}
+
+
+
 ## Model justification
 
 ## Model Coefficients Interpretation
@@ -269,21 +295,19 @@ $$log(\frac{p}{1-p}) = \beta_0+\beta_1x_{age}+\beta_2x_{gender}+\beta_3x_{porvin
 
 $p$ is the probability of an individual casting their vote for a certain political party (Liberal or Conservative).
 
-$\beta_0$ also known as the model's intercept, is the base probability of voting in a certain way when all explanatory variables are set to their reference levels.
+$\beta_0$(Intercept): This is the base log odds of an individual voting for the political party when all the explanatory variables are at their reference levels.
 
-$\beta_1$ is for every one-unit increase in age, it quantifies the corresponding variation in the log odds of voting preference.
+$\beta_1$(age): This coefficient represents the change in the log odds of voting for the political party for each additional year of age. A positive coefficient indicates that as age increases.
 
-$\beta_2$ is the influence on the log odds of preferring a particular voting option when the person is identified as male, with $x_{male}$ being assigned a value of 1 for males and 0 for females.
+$\beta_2$(gender): This coefficient indicates the difference in the log odds of voting for the political party for males compared to females (the reference category). A positive coefficient suggests that males are more likely to vote this party than females.
 
-$\beta_3$ to is the coefficients detail the adjustments in the log odds of the voting choice associated with residency in different provinces.
+$\beta_3$(province): Each of these coefficients (e.g. $\beta_BC$, $\beta_ON$, etc) measures the change in the log odds of voting for the political party for individuals living in each respective province compared to the reference province. Each coefficient reflects the unique effect of residing in that province on voting behavior.
 
-$x_{BC}$, for example, is set to 1 if the person resides in British Columbia, with similar binary indicators for other provinces from $x_{MB}$ through $x_{SK}$.
+$\beta_4$(religion): This coefficient captures the change in the log odds of voting this political party if an individual professes a religious belief (1) versus no religious belief (0, the reference category).
 
-$\beta_{4}$ captures the shift in log odds of the voting decision when the individual professes a religious belief, with $x_{religion}$ set to 1 for believers and 0 for non-believers.
+$\beta_5$(income): This coefficients reflect the differences in the log odds of voting for the political party based on income levels.
 
-$\beta_{5}$ is the modification in the log odds of a particular voting outcome for individuals identified as part of the middle class, where $x_{mid}$ is 1 for middle-class individuals and 0 otherwise.
-
-$\beta_{5}$ measures the alteration in the log odds of voting behavior for individuals who fall within the upper middle class to wealthy category, with $x_{upper}$ indicating this socio-economic status by being set to 1, and 0 for others.
+$\beta_6$(education): Similar to income, these coefficients represent the effect of education level on the log odds of voting for this political party.
 
 ## Post-Stratification
 
@@ -349,6 +373,78 @@ knitr::kable(conservative_coefs_df, caption = "Coefficients of the Conservative 
 
 # Discussion
 
-# Appendix
+
+# Appendix {.unnumbered}
+
+# Additional data details
+
+# Model details {#sec-model-details}
+
+## Posterior predictive check
+
+```{r echo=FALSE, warning=FALSE}
+pp_check(liberal_model, type = "hist")
+```
+Histogram of posterior predictive distributions from the liberal model. This plot compares the observed counts of the number of votes for the Liberal party (indicated by the dark line) with the simulated counts from the posterior predictive distribution (shown as histograms). The overlap between the observed counts and the predictive distribution suggests how well the model captures the data. Areas where the observed counts fall outside the bulk of the simulated distributions may indicate model misfit.
+
+```{r echo=FALSE, warning=FALSE}
+pp_check(conservative_model, type = "hist")
+```
+
+```{r echo=FALSE, warning=FALSE,  message=FALSE, fig.width=8, fig.height=6}
+survey_data <- read_csv(here("data", "analysis_data", "cleaned_survey_data.csv"))
+prior_covariates <- normal(location = 0, scale = 2.5, autoscale = FALSE)
+prior_intercept <- normal(0, 2.5)
+pp_plot <- posterior_vs_prior(liberal_model) +
+  theme_minimal() +
+  scale_color_brewer(palette = "Set1") +
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(size = 12, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 10),
+    axis.title.y = element_text(size = 7, face = "bold"),
+    axis.title.x = element_text(size = 7, face = "bold"),
+    legend.text = element_text(size = 5),
+    legend.title = element_text(size = 7)
+  ) +
+  coord_flip() +
+  ggtitle("Comparison of Posterior and Prior Distributions",
+          subtitle = "This plot visualizes how posterior distributions of model parameters compare with their specified priors for the liberal model.") +
+  xlab("Density") +
+  ylab("Parameters")
+
+# Print the plot
+print(pp_plot)
+```
+
+
+```{r echo=FALSE, warning=FALSE,  message=FALSE, fig.width=8, fig.height=6}
+prior_covariates <- normal(location = 0, scale = 2.5, autoscale = FALSE)
+prior_intercept <- normal(0, 2.5)
+pp_plot <- posterior_vs_prior(conservative_model) +
+  theme_minimal() +
+  scale_color_brewer(palette = "Set1") +
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(size = 12, face = "bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 10),
+    axis.title.y = element_text(size = 7, face = "bold"),
+    axis.title.x = element_text(size = 7, face = "bold"),
+    legend.text = element_text(size = 5),
+    legend.title = element_text(size = 7)
+  ) +
+  coord_flip() +
+  ggtitle("Comparison of Posterior and Prior Distributions",
+          subtitle = "This plot visualizes how posterior distributions of model parameters compare with their specified priors for the conservative model.") +
+  xlab("Density") +
+  ylab("Parameters")
+
+# Print the plot
+print(pp_plot)
+
+```
+
+## Diagnostics
+
 
 # References
