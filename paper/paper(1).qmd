@@ -29,6 +29,7 @@ library(kableExtra)
 library(rstanarm)
 library(arrow)
 library(tidybayes)
+library(bayesplot)
 ```
 
 # Introduction
@@ -201,7 +202,11 @@ ggplot(combined_data, aes(x = Age, fill = Dataset)) +
 
 ```
 
-@fig-age-distribution displays the age distribution from both census (in red) and survey (in blue) datasets. The census distribution exhibits a unimodal peak around the 50-60 year age range and a sharp decline beyond 80 years, suggesting a concentration of middle to late-middle-aged respondents. Conversely, the survey dataset portrays a wider distribution, extending towards older ages with a noticeable skew to the right, indicating the presence of older individuals up to 97 years old. The regions of overlap appear purple, indicating age ranges common to both datasets, with the census data generally showing higher frequencies in most age categories. This comparison highlights the distinct age profiles captured by the two sources, with a significant representation of middle-aged individuals in both, with the survey dataset capturing a broader demographic.
+@fig-age-distribution displays the age distribution from both census (in red) and survey (in blue) datasets.
+The census distribution exhibits a unimodal peak around the 50-60 year age range and a sharp decline beyond 80 years, suggesting a concentration of middle to late-middle-aged respondents.
+Conversely, the survey dataset portrays a wider distribution, extending towards older ages with a noticeable skew to the right, indicating the presence of older individuals up to 97 years old.
+The regions of overlap appear purple, indicating age ranges common to both datasets, with the census data generally showing higher frequencies in most age categories.
+This comparison highlights the distinct age profiles captured by the two sources, with a significant representation of middle-aged individuals in both, with the survey dataset capturing a broader demographic.
 \newpage
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
@@ -220,7 +225,12 @@ ggplot(combined_provinces, aes(x = province, fill = dataset)) +
 
 ```
 
-@fig-province-distribution contrasts the provincial distribution of respondents from both survey and census datasets, with provinces along the x-axis and respondent counts on the y-axis. The survey data, shown in blue, reaches its highest point in Ontario, indicating a significantly larger number of respondents compared to other provinces in the survey. This peak towers above all other survey data points and also surpasses the census data count for Ontario, which suggests a disproportionate representation or potentially an over-sampling in the survey for Ontario. In contrast, the lowest point for the survey dataset appears in Prince Edward Island, with very few respondents, paralleled by a similarly low count for this province in the census dataset, shown in red. Notably, the census data peaks in Quebec, where the red bar indicates the highest frequency among all provinces for the census, while Alberta's census count is at its lowest, barely rising above the baseline. This visual comparison reveals not only the variations in population coverage between the two types of data but also significant regional differences within the datasets, which could reflect varied sampling methods or demographic distributions.
+@fig-province-distribution contrasts the provincial distribution of respondents from both survey and census datasets, with provinces along the x-axis and respondent counts on the y-axis.
+The survey data, shown in blue, reaches its highest point in Ontario, indicating a significantly larger number of respondents compared to other provinces in the survey.
+This peak towers above all other survey data points and also surpasses the census data count for Ontario, which suggests a disproportionate representation or potentially an over-sampling in the survey for Ontario.
+In contrast, the lowest point for the survey dataset appears in Prince Edward Island, with very few respondents, paralleled by a similarly low count for this province in the census dataset, shown in red.
+Notably, the census data peaks in Quebec, where the red bar indicates the highest frequency among all provinces for the census, while Alberta's census count is at its lowest, barely rising above the baseline.
+This visual comparison reveals not only the variations in population coverage between the two types of data but also significant regional differences within the datasets, which could reflect varied sampling methods or demographic distributions.
 \newpage
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
@@ -248,7 +258,10 @@ ggplot(education_summary, aes(x = Education, y = Count, group = Dataset, color =
 
 ```
 
-@fig-education-distribution presented compares the distribution of education levels across two different datasets, one from a survey and another from a census, differentiated by colors—red for the survey and blue for the census. Education levels are divided into three categories along the x-axis: "Highly Educated", "Limited Education", and "Some Education" in census dataset, with the y-axis displaying the count of individuals within each category. While the education level is divided into "Low Education", "Some Education" and "High Education" in the survey dataset. A noticeable trend is the inverse relationship between the two datasets from "Highly Educated" to "Limited Education": the count for the Census dataset declines while that for the Survey dataset rises, suggesting a disparity in the representation of education levels between the two data sources.
+@fig-education-distribution presented compares the distribution of education levels across two different datasets, one from a survey and another from a census, differentiated by colors—red for the survey and blue for the census.
+Education levels are divided into three categories along the x-axis: "Highly Educated", "Limited Education", and "Some Education" in census dataset, with the y-axis displaying the count of individuals within each category.
+While the education level is divided into "Low Education", "Some Education" and "High Education" in the survey dataset.
+A noticeable trend is the inverse relationship between the two datasets from "Highly Educated" to "Limited Education": the count for the Census dataset declines while that for the Survey dataset rises, suggesting a disparity in the representation of education levels between the two data sources.
 
 This discrepancy highlights potential differences in sampling methods, response rates, or the representativeness of each dataset relative to the underlying population.
 The most pronounced difference is at the "Limited Education" level, where the Survey dataset shows significantly lower counts compared to the Census dataset, indicating a possible overrepresentation of individuals with limited education in the censaus or an underrepresentation in the survey.
@@ -274,7 +287,11 @@ ggplot(combined_data_religion, aes(x = Religion, fill = Dataset)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))  
 ```
 
-@fig-religion-distribution delineates the reported religious affiliations in both the census and survey datasets, differentiated by color intensity, with the census depicted in a darker red and the survey in a lighter pink. The x-axis is categorized into 'No' for non-affiliated individuals and 'Yes' for those with religious affiliation. A striking contrast is observed in the 'Yes' category, where the census data’s count towers over that of the survey, indicating a greater number of religiously affiliated respondents. Conversely, for those reporting no religious affiliation, the survey's lighter pink bar is comparable in height to the census's, suggesting a more even distribution between the two datasets. This discrepancy underscores a pronounced difference in the representation of religious affiliation between the two data sources, potentially alluding to divergent demographic characteristics or response patterns within the datasets.
+@fig-religion-distribution delineates the reported religious affiliations in both the census and survey datasets, differentiated by color intensity, with the census depicted in a darker red and the survey in a lighter pink.
+The x-axis is categorized into 'No' for non-affiliated individuals and 'Yes' for those with religious affiliation.
+A striking contrast is observed in the 'Yes' category, where the census data’s count towers over that of the survey, indicating a greater number of religiously affiliated respondents.
+Conversely, for those reporting no religious affiliation, the survey's lighter pink bar is comparable in height to the census's, suggesting a more even distribution between the two datasets.
+This discrepancy underscores a pronounced difference in the representation of religious affiliation between the two data sources, potentially alluding to divergent demographic characteristics or response patterns within the datasets.
 \newpage
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
@@ -292,7 +309,11 @@ ggplot(combined_data_income, aes(x = IncomeBeforeTax, fill = Dataset)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
 ```
 
-@fig-income-distribution compares the distribution of socioeconomic groups before tax as represented in the census and survey datasets, with income hierarchy arrayed along the x-axis and the number of individuals in each bracket indicated on the y-axis. Both datasets show a similar count in the 'Upper Middle Class to Wealthy', 'Upper Class', 'Lower Middle Class to Poor' and 'Lower Class' category. The census dataset, indicated by the significantly taller deep red bar as opposed to the shorter orange bar of the survey dataset. The 'Middle Class' brackethas a higher representation in the survey data but by a less pronounced margin. The colors—deep red for the census and orange for the survey—aid in the visual differentiation between the two datasets, enabling a direct comparison of how each income level is represented within them, and suggest a higher census capture of lower-income brackets compared to the survey data.
+@fig-income-distribution compares the distribution of socioeconomic groups before tax as represented in the census and survey datasets, with income hierarchy arrayed along the x-axis and the number of individuals in each bracket indicated on the y-axis.
+Both datasets show a similar count in the 'Upper Middle Class to Wealthy', 'Upper Class', 'Lower Middle Class to Poor' and 'Lower Class' category.
+The census dataset, indicated by the significantly taller deep red bar as opposed to the shorter orange bar of the survey dataset.
+The 'Middle Class' brackethas a higher representation in the survey data but by a less pronounced margin.
+The colors—deep red for the census and orange for the survey—aid in the visual differentiation between the two datasets, enabling a direct comparison of how each income level is represented within them, and suggest a higher census capture of lower-income brackets compared to the survey data.
 
 \newpage
 
@@ -356,6 +377,10 @@ This process streamlined the dataset by focusing on essential variables for soci
 The cleaned data was then saved in both CSV and Parquet formats to facilitate accessibility and further analysis.
 
 # Model
+We utilized the rstanarm package for constructing the generalized linear model[@R-rstanarm], the rstanarm package serves as a user-friendly interface in R for fitting Bayesian regression models using the Stan probabilistic programming language.
+It enables users to effortlessly construct various types of regression models, including linear, logistic, and Poisson regression, while leveraging the power of Bayesian methods for inference.
+By seamlessly integrating with Stan, rstanarm provides efficient algorithms for model fitting and accurate estimates of uncertainty.
+Additionally, the package offers diagnostic tools for assessing model convergence and sensitivity to prior specifications, making it an invaluable resource for Bayesian data analysis in R.
 
 ## Method
 
@@ -372,7 +397,6 @@ The last stage incorporated post-stratification to gauge the distribution of vot
 This involved segmenting the populace according to our model's predictors and calculating the voting proportions for each party within these segments.
 
 ## Model Set-up
-
 We define our Bayesian logistic regression model for the probability of an individual voting for the Liberal/Conservative party as follows:
 
 -   $y_i$: Binary outcome of voting for the Liberal/Conservative party (1) or not (0)
@@ -398,6 +422,8 @@ y_i | \pi_i &\sim \text{Bernoulli}(\pi_i) \\
 \end{align}
 ```
 ## Model justification
+
+
 
 ## Model Coefficients Interpretation
 
@@ -462,10 +488,9 @@ conservative_model <- readRDS(here("models", "conservative_model.rds"))
 ```
 
 Table2: Summary the residuals for Conservative Party:
-
 ```{r echo=FALSE, warning=FALSE}
-liberal_residuals <- posterior_predict(liberal_model) - cleaned_survey_data$vote_liberal
 
+liberal_residuals <- posterior_predict(liberal_model) - cleaned_survey_data$vote_liberal
 conservative_residuals <- posterior_predict(conservative_model) - cleaned_survey_data$vote_conservative
 
 table_summary <- data.frame(
@@ -476,8 +501,11 @@ table_summary <- data.frame(
   IQR_Residual = c(IQR(liberal_residuals, na.rm = TRUE), IQR(conservative_residuals, na.rm = TRUE))
 )
 
-print(table_summary)
+# Create a table of the data
+kable(table_summary, caption = "Summary of Residuals by Party")
+
 ```
+
 
 Table3: Summary the coefficient for Liberal Party:
 
@@ -554,9 +582,6 @@ The spread of the lighter lines around the darker one provides insight into the 
 \newpage
 
 ```{r fig-liberal-model, echo=FALSE, warning=FALSE, message=FALSE, fig.width=8, fig.height=6, fig.cap="Comparison of Posterior and Prior Distributions in the Liberal Model"}
-library(readr)
-library(bayesplot)
-library(here)
 
 survey_data <- read_csv(here("data", "analysis_data", "cleaned_survey_data.csv"))
 
