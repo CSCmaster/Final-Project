@@ -201,10 +201,7 @@ ggplot(combined_data, aes(x = Age, fill = Dataset)) +
 
 ```
 
-@fig-age-distribution illustrates the age distributions from census and survey datasets, with the census data in red displaying a more concentrated and unimodal age distribution peaking between 50 and 60 years and tapering off sharply at 80.
-In contrast, the survey data, shown in blue, reveals a broader spread of ages with a right-skewed tail extending to 97 years, indicating the inclusion of older respondents.
-Both distributions share a common median age range, highlighted by the combined purple hue in the overlap, but the census data consistently show higher frequencies across most age bins.
-This visual comparison underscores the differing age profiles captured by the two datasets and a significant density of middle-aged respondents in both populations.
+@fig-age-distribution displays the age distribution from both census (in red) and survey (in blue) datasets. The census distribution exhibits a unimodal peak around the 50-60 year age range and a sharp decline beyond 80 years, suggesting a concentration of middle to late-middle-aged respondents. Conversely, the survey dataset portrays a wider distribution, extending towards older ages with a noticeable skew to the right, indicating the presence of older individuals up to 97 years old. The regions of overlap appear purple, indicating age ranges common to both datasets, with the census data generally showing higher frequencies in most age categories. This comparison highlights the distinct age profiles captured by the two sources, with a significant representation of middle-aged individuals in both, with the survey dataset capturing a broader demographic.
 \newpage
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
@@ -223,14 +220,7 @@ ggplot(combined_provinces, aes(x = province, fill = dataset)) +
 
 ```
 
-@fig-province-distribution depicts the frequency distribution of respondents across different provinces as collected in two datasets: the census and survey data.
-Each province is represented on the x-axis, and the corresponding count of respondents is displayed on the y-axis.
-The bars are color-coded, with blue indicating the survey dataset and red representing the census dataset.
-The bars are placed side by side, or 'dodged', allowing for a direct visual comparison between the two datasets within each provincial category.
-
-From a statistical perspective, Ontario has the highest frequency in the survey dataset, which substantially exceeds the count in the census dataset, indicating a larger sample or population size recorded in the survey for this province.
-Conversely, the counts for British Columbia and Alberta show a relatively balanced representation between the two datasets.
-The chart facilitates a comparative analysis of the datasets, revealing disparities and similarities in the population coverage across provinces, which could be indicative of sampling strategies or the demographic spread within the datasets.
+@fig-province-distribution contrasts the provincial distribution of respondents from both survey and census datasets, with provinces along the x-axis and respondent counts on the y-axis. The survey data, shown in blue, reaches its highest point in Ontario, indicating a significantly larger number of respondents compared to other provinces in the survey. This peak towers above all other survey data points and also surpasses the census data count for Ontario, which suggests a disproportionate representation or potentially an over-sampling in the survey for Ontario. In contrast, the lowest point for the survey dataset appears in Prince Edward Island, with very few respondents, paralleled by a similarly low count for this province in the census dataset, shown in red. Notably, the census data peaks in Quebec, where the red bar indicates the highest frequency among all provinces for the census, while Alberta's census count is at its lowest, barely rising above the baseline. This visual comparison reveals not only the variations in population coverage between the two types of data but also significant regional differences within the datasets, which could reflect varied sampling methods or demographic distributions.
 \newpage
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
@@ -258,9 +248,7 @@ ggplot(education_summary, aes(x = Education, y = Count, group = Dataset, color =
 
 ```
 
-@fig-education-distribution presented compares the distribution of education levels across two different datasets, one from a survey and another from a census, differentiated by colors—red for the survey and blue for the census.
-Education levels are divided into three categories along the x-axis: "Highly Educated", "Limited Education", and "Some Education", with the y-axis displaying the count of individuals within each category.
-A noticeable trend is the inverse relationship between the two datasets from "Highly Educated" to "Limited Education": the count for the Census dataset declines while that for the Survey dataset rises, suggesting a disparity in the representation of education levels between the two data sources.
+@fig-education-distribution presented compares the distribution of education levels across two different datasets, one from a survey and another from a census, differentiated by colors—red for the survey and blue for the census. Education levels are divided into three categories along the x-axis: "Highly Educated", "Limited Education", and "Some Education" in census dataset, with the y-axis displaying the count of individuals within each category. While the education level is divided into "Low Education", "Some Education" and "High Education" in the survey dataset. A noticeable trend is the inverse relationship between the two datasets from "Highly Educated" to "Limited Education": the count for the Census dataset declines while that for the Survey dataset rises, suggesting a disparity in the representation of education levels between the two data sources.
 
 This discrepancy highlights potential differences in sampling methods, response rates, or the representativeness of each dataset relative to the underlying population.
 The most pronounced difference is at the "Limited Education" level, where the Survey dataset shows significantly lower counts compared to the Census dataset, indicating a possible overrepresentation of individuals with limited education in the censaus or an underrepresentation in the survey.
@@ -286,14 +274,7 @@ ggplot(combined_data_religion, aes(x = Religion, fill = Dataset)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))  
 ```
 
-@fig-religion-distribution depicts the frequency of individuals categorized by religious affiliation within two datasets: census and survey.
-Each dataset's frequency is represented by a bar in distinct shades, with a darker red indicating the census dataset and a lighter pink representing the survey dataset.
-The x-axis bifurcates the data into two groups: those without religious affiliation ('NO') and those with religious affiliation ('YES').
-
-The y-axis provides a count of individuals in each category.
-Notably, the census dataset shows a substantially higher count of individuals with a religious affiliation compared to those without.
-This pattern is less pronounced in the survey dataset, where the frequencies of individuals with and without religious affiliation are more comparable.
-The visual disparity in bar heights, especially within the 'YES' category, suggests a higher prevalence of religious affiliation reported in the census dataset than in the survey dataset.
+@fig-religion-distribution delineates the reported religious affiliations in both the census and survey datasets, differentiated by color intensity, with the census depicted in a darker red and the survey in a lighter pink. The x-axis is categorized into 'No' for non-affiliated individuals and 'Yes' for those with religious affiliation. A striking contrast is observed in the 'Yes' category, where the census data’s count towers over that of the survey, indicating a greater number of religiously affiliated respondents. Conversely, for those reporting no religious affiliation, the survey's lighter pink bar is comparable in height to the census's, suggesting a more even distribution between the two datasets. This discrepancy underscores a pronounced difference in the representation of religious affiliation between the two data sources, potentially alluding to divergent demographic characteristics or response patterns within the datasets.
 \newpage
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
@@ -311,16 +292,7 @@ ggplot(combined_data_income, aes(x = IncomeBeforeTax, fill = Dataset)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
 ```
 
-@fig-income-distribution displays the distribution of income categories before tax across two datasets: census and survey.
-The income categories are defined as 'Lower Middle Class to Poor', 'Middle Class', and 'Upper Middle Class to Wealthy', and are represented on the x-axis.
-The y-axis measures the count of individuals within each income bracket.
-
-In the 'Lower Middle Class to Poor' category, there is a significant count of individuals in the census dataset, shown by a tall bar, which vastly exceeds the count from the survey dataset.
-For the 'Middle Class' bracket, the census dataset again shows a higher frequency, but with a smaller margin compared to the survey dataset.
-Lastly, in the 'Upper Middle Class to Wealthy' category, both datasets depict a lower frequency of individuals than in the other categories, but the survey dataset shows a slightly higher count than the census dataset in this high-income bracket.
-
-The bars for the census dataset are colored in a deep red, while the bars for the survey dataset are in orange, with each pair of bars positioned next to one another for a clear visual comparison.
-This color differentiation, along with the bar placement, facilitates an immediate comparative analysis of the socioeconomic composition of the populations captured in the two datasets, indicating a notably higher representation of lower income levels within the census data.
+@fig-income-distribution compares the distribution of socioeconomic groups before tax as represented in the census and survey datasets, with income hierarchy arrayed along the x-axis and the number of individuals in each bracket indicated on the y-axis. Both datasets show a similar count in the 'Upper Middle Class to Wealthy', 'Upper Class', 'Lower Middle Class to Poor' and 'Lower Class' category. The census dataset, indicated by the significantly taller deep red bar as opposed to the shorter orange bar of the survey dataset. The 'Middle Class' brackethas a higher representation in the survey data but by a less pronounced margin. The colors—deep red for the census and orange for the survey—aid in the visual differentiation between the two datasets, enabling a direct comparison of how each income level is represented within them, and suggest a higher census capture of lower-income brackets compared to the survey data.
 
 \newpage
 
