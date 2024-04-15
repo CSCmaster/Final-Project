@@ -154,9 +154,8 @@ Assign "Less than \$25,000" and "\$25,000 to \$49,999" incomes to the "Lower Mid
 ## Sample of cleaned Data
 
 ### Data Summary Measures
-
 ```{r}
-#| label: tbl-data-summary
+#| label: tbl-data-summary-numeric
 #| tbl-cap: Summary of Numerical Variables Across Census and Survey Data
 #| echo: false
 numeric_summary_df <- data.frame(
@@ -171,7 +170,11 @@ numeric_summary_df <- data.frame(
 )
 
 knitr::kable(numeric_summary_df)
+
 ```
+
+
+
 
 @tbl-data-summary summaries the census and survey data reveals age distributions with the census data capturing a narrower age range (15 to 80 years, with a median of 54) compared to the broader age span in the survey data (18 to 97 years, with a median of 53).
 The average ages for the census and survey populations are 52.18 and 51.3 years, respectively.
@@ -490,7 +493,11 @@ conservative_model <- readRDS(here("models", "conservative_model.rds"))
 ```
 
 Table2: Summary the residuals for Conservative Party:
-```{r echo=FALSE, warning=FALSE}
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#| label: tbl-data-summary
+#| tbl-cap: Summary of Numerical Variables Across Census and Survey Data
+#| echo: false
 
 liberal_residuals <- posterior_predict(liberal_model) - cleaned_survey_data$vote_liberal
 conservative_residuals <- posterior_predict(conservative_model) - cleaned_survey_data$vote_conservative
@@ -503,32 +510,51 @@ table_summary <- data.frame(
   IQR_Residual = c(IQR(liberal_residuals, na.rm = TRUE), IQR(conservative_residuals, na.rm = TRUE))
 )
 
-# Create a table of the data
+
 kable(table_summary, caption = "Summary of Residuals by Party")
 
 ```
+@tbl-data-summary
 
 
-Table3: Summary the coefficient for Liberal Party:
-
-```{r echo=FALSE, warning=FALSE}
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#| label: tbl-coef-summary-liberal
+#| tbl-cap: Coefficients of the Liberal Model
+#| echo: false
 
 liberal_coefs <- coef(liberal_model)
-conservative_coefs <- coef(conservative_model)
-
 liberal_coefs_df <- data.frame(Estimate = liberal_coefs, row.names = NULL)
-conservative_coefs_df <- data.frame(Estimate = conservative_coefs, row.names = NULL)
-
 liberal_coefs_df$Term <- names(liberal_coefs)
-conservative_coefs_df$Term <- names(conservative_coefs)
-
 liberal_coefs_df <- liberal_coefs_df[, c("Term", "Estimate")]
-conservative_coefs_df <- conservative_coefs_df[, c("Term", "Estimate")]
-
-knitr::kable(liberal_coefs_df, caption = "Coefficients of the Liberal Model", row.names = FALSE)
-knitr::kable(conservative_coefs_df, caption = "Coefficients of the Conservative Model", row.names = FALSE)
+knitr::kable(liberal_coefs_df, row.names = FALSE)
 
 ```
+@tbl-coef-summary-liberal
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+#| label: tbl-coef-summary-conservative
+#| tbl-cap: Coefficients of the Conservative Model
+#| echo: false
+
+conservative_coefs <- coef(conservative_model)
+conservative_coefs_df <- data.frame(Estimate = conservative_coefs, row.names = NULL)
+conservative_coefs_df$Term <- names(conservative_coefs)
+conservative_coefs_df <- conservative_coefs_df[, c("Term", "Estimate")]
+knitr::kable(conservative_coefs_df, row.names = FALSE)
+
+```
+
+@tbl-coef-summary-conservative
+
+
+
+
+
+
+
+
+
+
 
 ## Plot of binary logistic regression models
 
