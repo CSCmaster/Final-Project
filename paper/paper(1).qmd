@@ -628,6 +628,7 @@ step_cons <- stepAIC(m_cons, direction = "both", k = 2)
 
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, include = FALSE}
+
 step_cons <- glm(vote_conservative ~ age+province+education+religion+income_before_tax,
           data=cleaned_survey_data, family = "binomial")
 step_cons_counts <- cleaned_survey_data %>%
@@ -693,7 +694,7 @@ lib_estimate <- lib_counts %>%
 
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
-
+library(dplyr)
 Party_Name <- c("Conservative", "Liberal")
 yPS_primary <- c(cons_estimate,lib_estimate)
 yPS_AIC <- c(cons_aic ,lib_aic)
@@ -702,137 +703,92 @@ knitr::kable(tibble(Party_Name, yPS_primary, yPS_AIC), caption = "The Hat of yPS
 
 ```
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
-library(ggplot2)
-library(broom)
 
-# Assuming you have already fitted a model `step_lib`
-# and `step_lib` is an object of class 'glm' or similar
-tidy_lib <- broom::tidy(step_lib, conf.int = TRUE, exponentiate = FALSE)  # Set exponentiate=TRUE for logistic regression
-
-# Forest plot of coefficient estimates
-ggplot(tidy_lib, aes(x = estimate, y = reorder(term, estimate))) +
-  geom_point() +
-  geom_errorbar(aes(xmin = conf.low, xmax = conf.high), width = 0.2) +
-  geom_vline(xintercept = 1, linetype = "dotted", color = "red") +  # Use 0 if exponentiate=FALSE
-  labs(x = "Estimate", y = "Coefficient", title = "Coefficient Estimates for Liberal Party") +
-  theme_minimal()
-# Assuming your `cleaned_survey_data` has a column `province` and `vote_liberal`
-proportions_by_province <- cleaned_survey_data %>%
-  group_by(province) %>%
-  summarise(estimate = mean(vote_liberal)) %>%
-  mutate(province = factor(province, levels = rev(unique(province))))  # Ordering the provinces
-
-# Horizontal bar plot of estimated proportions by province
-ggplot(proportions_by_province, aes(x = province, y = estimate)) +
-  geom_col() +
-  coord_flip() +  # Flipping the coordinates for horizontal bars
-  labs(y = "Estimated Proportion", x = "Province", title = "Estimated Proportion of Voting for Liberal by Province") +
-  theme_minimal()
-
-
-```
-
-
- 
-```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
-cleaned_survey_data <- read_parquet(here("data", "analysis_data","cleaned_survey_data.parquet"))
-
-cleaned_survey_data$vote_liberal <- ifelse(cleaned_survey_data$vote_liberal == "Yes", 1, 0)
-
-lib_props <- cleaned_survey_data %>% 
-
-  group_by(age, sex, province, education, religion, income_before_tax) %>% 
-  summarise(n = n(), .groups ='drop') %>% 
-
-  group_by(province) %>% 
-  mutate(prop = n/sum(n))
-
-
-```
 
 
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
 library(ggplot2)
 library(dplyr)
-# Assuming 'cleaned_survey_data' is your data frame and it's already loaded in R
-# First, check that all required variables are present in 'cleaned_survey_data'
-required_vars <- c("vote_conservative", "age", "sex", "province", "education", "religion", "income_before_tax")
+library(broom)
+
+required_vars <- c("vote_liberal", "age", "sex", "province", "education", "religion", "income_before_tax")
 missing_vars <- setdiff(required_vars, names(cleaned_survey_data))
 
 if(length(missing_vars) > 0) {
   stop(paste("The following required variables are missing in the data frame:", paste(missing_vars, collapse=", ")))
 }
+model_lib <- lm(vote_liberal ~ age + sex + province + education + religion + income_before_tax, data=cleaned_survey_data)
+model_summary_lib <- broom::tidy(model_lib, conf.int = TRUE)
 
-# If all variables are present, fit the linear model
-model <- lm(vote_conservative ~ age + sex + province + education + religion + income_before_tax, data=cleaned_survey_data)
-
-# Use broom::tidy to get a tidy data frame of the model summary with confidence intervals
-library(broom)
-model_summary <- broom::tidy(model, conf.int = TRUE)
-
-
-ggplot(model_summary, aes(x = estimate, y = reorder(term, estimate))) +
+ggplot(model_summary_lib, aes(x = estimate, y = reorder(term, estimate))) +
   geom_pointrange(aes(xmin = conf.low, xmax = conf.high)) +
   geom_vline(xintercept = 0, linetype = "dashed", color = "red") +
-  labs(x = "Estimate", y = "Coefficient", title = "Coefficient Estimates") +
+  labs(x = "Estimate", y = "Coefficient", title = "Coefficient Estimates for Liberal Vote Prediction") +
   theme_minimal()
 
 ```
 
+@
+ 
 
 
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
-
 library(ggplot2)
 library(dplyr)
 
-# Assuming 'your_data' is your dataframe and it contains the variables 'province' and 'vote_conservative'
-# where 'vote_conservative' is a binary (0/1) indicating whether a vote for conservative was cast.
+# Assuming 'cleaned_survey_data' contains 'province' and 'vote_liberal',
+# where 'vote_liberal' is a binary (0/1) indicating whether a vote for liberal was cast.
 
-# Calculate proportions and confidence intervals by province
-conservative_votes_by_province <- cleaned_survey_data %>%
+# Calculate proportions and confidence intervals by province for the liberal party
+liberal_votes_by_province <- cleaned_survey_data %>%
   group_by(province) %>%
   summarise(
-    proportion = mean(vote_conservative, na.rm = TRUE),
+    proportion = mean(vote_liberal, na.rm = TRUE),
     lower = proportion - qnorm(0.975) * sqrt(proportion * (1 - proportion) / n()),
-    upper = proportion + qnorm(0.975) * sqrt(proportion * (1 - proportion) / n())
-  )
+    upper = proportion + qnorm(0.975) * sqrt(proportion * (1 - proportion) / n()),
+    .groups = 'drop'  # Drop grouping for further manipulation if needed
+  ) %>%
+  ungroup()  # Ensure we remove the grouping for the ggplot
 
-# Create the plot
-ggplot(conservative_votes_by_province, aes(x = reorder(province, -proportion), y = proportion)) +
+# Create the plot for the liberal party
+ggplot(liberal_votes_by_province, aes(x = reorder(province, -proportion), y = proportion)) +
   geom_point() +
   geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.2) +
   coord_flip() +  # Flip the axes to have provinces on the y-axis
-  labs(x = "Proportion", y = "Province", title = "Estimated Proportion of Voting for Conservative by Province") +
+  labs(x = "Proportion", y = "Province", title = "Estimated Proportion of Voting for Liberal by Province") +
   theme_minimal()
 
+
 ```
+
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
 library(ggplot2)
 library(dplyr)
 
-conservative_votes_by_education <- cleaned_survey_data %>%
+# Assuming 'cleaned_survey_data' is your dataframe and it contains the variables 'education' and 'vote_liberal'
+# where 'vote_liberal' is a binary (0/1) indicating whether a vote for liberal was cast.
+
+liberal_votes_by_education <- cleaned_survey_data %>%
   group_by(education) %>%
   summarise(
-    proportion = mean(vote_conservative, na.rm = TRUE),
+    proportion = mean(vote_liberal, na.rm = TRUE),
     lower = proportion - qnorm(0.975) * sqrt(proportion * (1 - proportion) / n()),
-    upper = proportion + qnorm(0.975) * sqrt(proportion * (1 - proportion) / n())
+    upper = proportion + qnorm(0.975) * sqrt(proportion * (1 - proportion) / n()),
+    .groups = 'drop'  # This will automatically ungroup the data (requires dplyr version 1.0.0 or higher)
   ) %>%
-  arrange(desc(proportion))  
-ggplot(conservative_votes_by_education, aes(x = reorder(education, proportion), y = proportion)) +
+  arrange(desc(proportion))
+
+ggplot(liberal_votes_by_education, aes(x = reorder(education, proportion), y = proportion)) +
   geom_point() +
   geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.2) +
-  coord_flip() +  
-  labs(x = "Proportion", y = "Education", title = "Proportion of Votes for Conservative by Education Level") +
+  coord_flip() +  # Flip the axes to have education levels on the y-axis
+  labs(x = "Proportion", y = "Education", title = "Proportion of Votes for Liberal by Education Level") +
   theme_minimal()
 
 ```
-
-
 
 
 
