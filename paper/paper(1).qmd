@@ -174,9 +174,7 @@ knitr::kable(numeric_summary_df)
 ```
 
 
-
-
-@tbl-data-summary summaries the census and survey data reveals age distributions with the census data capturing a narrower age range (15 to 80 years, with a median of 54) compared to the broader age span in the survey data (18 to 97 years, with a median of 53).
+@tbl-data-summary-numeric summaries the census and survey data reveals age distributions with the census data capturing a narrower age range (15 to 80 years, with a median of 54) compared to the broader age span in the survey data (18 to 97 years, with a median of 53).
 The average ages for the census and survey populations are 52.18 and 51.3 years, respectively.
 Voting data from the survey indicate that a quarter of the respondents are inclined towards the Liberal Party, as shown by an average of 0.267, while a slightly lower average of 0.249 suggests Conservative support; both parties have 50% of the population not voting for them, with a median of 0.
 The upper bounds for Liberal and Conservative votes are 1, meaning some respondents indicated a vote for these parties, while the third quartile for Conservative votes indicates less overall support compared to the Liberal Party.
@@ -487,67 +485,352 @@ Subsequently, we combine these to ascertain the aggregate voting proportion as p
 
 ## Analysis of AIC Model
 
-```{r echo=FALSE}
+
+
+```{r , echo=FALSE, message=FALSE, warning=FALSE}
 liberal_model <- readRDS(here("models", "liberal_model.rds"))
 conservative_model <- readRDS(here("models", "conservative_model.rds"))
 ```
 
-Table2: Summary the residuals for Conservative Party:
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-#| label: tbl-data-summary
-#| tbl-cap: Summary of Numerical Variables Across Census and Survey Data
+
+
+```{r, echo=FALSE, message=FALSE, warning = FALSE}
+#| label: tbl-coef-summary-conservative
+#| tbl-cap: Coefficients of the conservative Model
 #| echo: false
 
-liberal_residuals <- posterior_predict(liberal_model) - cleaned_survey_data$vote_liberal
-conservative_residuals <- posterior_predict(conservative_model) - cleaned_survey_data$vote_conservative
+install.packages("MASS")
+# Load the necessary library
+library(MASS)
+library(broom)
+library(knitr)
 
-table_summary <- data.frame(
-  Party = c("Liberal", "Conservative"),
-  Mean_Residual = c(mean(liberal_residuals, na.rm = TRUE), mean(conservative_residuals, na.rm = TRUE)),
-  Median_Residual = c(median(liberal_residuals, na.rm = TRUE), median(conservative_residuals, na.rm = TRUE)),
-  SD_Residual = c(sd(liberal_residuals, na.rm = TRUE), sd(conservative_residuals, na.rm = TRUE)),
-  IQR_Residual = c(IQR(liberal_residuals, na.rm = TRUE), IQR(conservative_residuals, na.rm = TRUE))
-)
+# Fit the initial linear model
+initial_model <- lm(vote_conservative ~ age + sex + province + education + religion + income_before_tax, data=cleaned_survey_data)
 
+# Perform stepwise model selection using stepAIC
+step_cons <- stepAIC(initial_model, direction="both", trace = FALSE)  
 
-kable(table_summary, caption = "Summary of Residuals by Party")
+# Use broom::tidy to get a tidy data frame of the model summary with confidence intervals
+tidy_cons <- broom::tidy(step_cons, conf.int = TRUE)
+
+# Select the columns you want for the table, excluding statistic and p-value
+tidy_cons_selected <- tidy_cons[, c("term", "estimate", "std.error", "conf.low", "conf.high")]
+
+# Create the table with knitr::kable()
+kable_output <- knitr::kable(tidy_cons_selected, format = "html", caption = "Model Summary for Conservative Vote Prediction with Confidence Intervals")
+
+# Display the table output
+kable_output
+
 
 ```
-@tbl-data-summary
 
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+
+```{r, echo=FALSE, message=FALSE, warning = FALSE}
 #| label: tbl-coef-summary-liberal
 #| tbl-cap: Coefficients of the Liberal Model
 #| echo: false
 
-liberal_coefs <- coef(liberal_model)
-liberal_coefs_df <- data.frame(Estimate = liberal_coefs, row.names = NULL)
-liberal_coefs_df$Term <- names(liberal_coefs)
-liberal_coefs_df <- liberal_coefs_df[, c("Term", "Estimate")]
-knitr::kable(liberal_coefs_df, row.names = FALSE)
+# Assuming 'vote_liberal' is the column in your 'cleaned_survey_data' that represents voting for liberal
+initial_model_lib <- lm(vote_liberal ~ age + sex + province + education + religion + income_before_tax, data=cleaned_survey_data)
+step_lib <- stepAIC(initial_model_lib, direction="both", trace = FALSE)  
+
+tidy_lib <- broom::tidy(step_lib, conf.int = TRUE)
+
+tidy_lib_selected <- tidy_lib[, c("term", "estimate", "std.error", "conf.low", "conf.high")]
+
+kable_output_lib <- knitr::kable(tidy_lib_selected, format = "html", caption = "Model Summary for Liberal Vote Prediction with Confidence Intervals")
+kable_output_lib
+
+
+
+
 
 ```
+
+
+
+
 @tbl-coef-summary-liberal
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-#| label: tbl-coef-summary-conservative
-#| tbl-cap: Coefficients of the Conservative Model
-#| echo: false
-
-conservative_coefs <- coef(conservative_model)
-conservative_coefs_df <- data.frame(Estimate = conservative_coefs, row.names = NULL)
-conservative_coefs_df$Term <- names(conservative_coefs)
-conservative_coefs_df <- conservative_coefs_df[, c("Term", "Estimate")]
-knitr::kable(conservative_coefs_df, row.names = FALSE)
-
-```
+`
 
 @tbl-coef-summary-conservative
 
 
 
+
+
+
+
+
+
+
+@tbl-ypshat-summary
+```{r, echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+if (!require(MASS)) {
+    install.packages("MASS")
+    library(MASS)
+} else {
+    library(MASS)
+}
+
+
+m_lib <- glm(vote_liberal ~ age + sex + province + education + religion + income_before_tax,
+             data = cleaned_survey_data, family = "binomial")
+
+
+
+step_lib <- stepAIC(m_lib, direction = "both", trace = FALSE)  
+
+```
+
+
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, include = FALSE}
+
+m_lib <- glm(vote_liberal ~ age+sex+province+education+religion+income_before_tax,
+          data=cleaned_survey_data, family = "binomial")
+
+
+step_lib = stepAIC(m_lib, direction = "both", k = 2)
+```
+
+
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, include = FALSE}
+m_cons <- glm(vote_conservative ~ age+sex+province+education+religion+income_before_tax,
+          data=cleaned_survey_data, family = "binomial")
+
+step_cons <- stepAIC(m_cons, direction = "both", k = 2)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, include = FALSE}
+step_cons <- glm(vote_conservative ~ age+province+education+religion+income_before_tax,
+          data=cleaned_survey_data, family = "binomial")
+step_cons_counts <- cleaned_survey_data %>%
+  group_by(age, province, education, religion, income_before_tax)%>%
+  summarise(N_j=n(), .groups = 'keep')
+
+step_cons_counts$estimate <- 
+  step_cons %>%
+  predict(newdata = step_cons_counts, type = "response")
+
+cons_aic <- step_cons_counts %>%
+  mutate(predict_prob_cons = estimate*N_j) %>% 
+  ungroup() %>%
+  summarise(yPS_cons_aic = sum(predict_prob_cons)/sum(N_j))
+
+cons_counts <- cleaned_survey_data%>%
+  group_by(age, sex, province, education, religion, income_before_tax)%>%
+  summarise(N_j=n(), .groups = 'keep')
+
+cons_counts$estimate <- 
+  m_cons %>%
+  predict(newdata = cons_counts, type = "response")
+
+cons_estimate <- cons_counts %>%
+  mutate(predict_prob_cons = estimate*N_j) %>% 
+  ungroup() %>%
+  summarise(yPS_cons = sum(predict_prob_cons)/sum(N_j))
+
+
+step_lib <- glm(vote_liberal ~ age+province+education+religion+income_before_tax,
+          data=cleaned_survey_data, family = "binomial")
+step_lib_counts <- cleaned_survey_data %>%
+  group_by(age, province, education, religion, income_before_tax)%>%
+  summarise(N_j=n(), .groups = 'keep')
+
+step_lib_counts$estimate <- 
+  step_lib %>%
+  predict(newdata = step_lib_counts, type = "response")
+
+lib_aic <- step_lib_counts %>%
+  mutate(predict_prob_lib = estimate*N_j) %>% 
+  ungroup() %>%
+  summarise(yPS_lib_aic = sum(predict_prob_lib)/sum(N_j))
+
+
+lib_counts <- cleaned_survey_data %>%
+  group_by(age, sex, province, education, religion, income_before_tax)%>%
+  summarise(N_j=n(), .groups = 'keep')
+
+lib_counts$estimate <- 
+  m_lib %>%
+  predict(newdata = lib_counts, type = "response")
+
+lib_estimate <- lib_counts %>%
+  mutate(predict_prob_lib = estimate*N_j) %>% 
+  ungroup() %>%
+  summarise(yPS_lib = sum(predict_prob_lib)/sum(N_j))
+
+```
+
+
+
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+Party_Name <- c("Conservative", "Liberal")
+yPS_primary <- c(cons_estimate,lib_estimate)
+yPS_AIC <- c(cons_aic ,lib_aic)
+
+knitr::kable(tibble(Party_Name, yPS_primary, yPS_AIC), caption = "The Hat of yPS For Each Party, Between Primary Model and Final Model")
+
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+library(ggplot2)
+library(broom)
+
+# Assuming you have already fitted a model `step_lib`
+# and `step_lib` is an object of class 'glm' or similar
+tidy_lib <- broom::tidy(step_lib, conf.int = TRUE, exponentiate = FALSE)  # Set exponentiate=TRUE for logistic regression
+
+# Forest plot of coefficient estimates
+ggplot(tidy_lib, aes(x = estimate, y = reorder(term, estimate))) +
+  geom_point() +
+  geom_errorbar(aes(xmin = conf.low, xmax = conf.high), width = 0.2) +
+  geom_vline(xintercept = 1, linetype = "dotted", color = "red") +  # Use 0 if exponentiate=FALSE
+  labs(x = "Estimate", y = "Coefficient", title = "Coefficient Estimates for Liberal Party") +
+  theme_minimal()
+# Assuming your `cleaned_survey_data` has a column `province` and `vote_liberal`
+proportions_by_province <- cleaned_survey_data %>%
+  group_by(province) %>%
+  summarise(estimate = mean(vote_liberal)) %>%
+  mutate(province = factor(province, levels = rev(unique(province))))  # Ordering the provinces
+
+# Horizontal bar plot of estimated proportions by province
+ggplot(proportions_by_province, aes(x = province, y = estimate)) +
+  geom_col() +
+  coord_flip() +  # Flipping the coordinates for horizontal bars
+  labs(y = "Estimated Proportion", x = "Province", title = "Estimated Proportion of Voting for Liberal by Province") +
+  theme_minimal()
+
+
+```
+
+
+ 
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+cleaned_survey_data <- read_parquet(here("data", "analysis_data","cleaned_survey_data.parquet"))
+
+cleaned_survey_data$vote_liberal <- ifelse(cleaned_survey_data$vote_liberal == "Yes", 1, 0)
+
+lib_props <- cleaned_survey_data %>% 
+
+  group_by(age, sex, province, education, religion, income_before_tax) %>% 
+  summarise(n = n(), .groups ='drop') %>% 
+
+  group_by(province) %>% 
+  mutate(prop = n/sum(n))
+
+
+```
+
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+library(ggplot2)
+library(dplyr)
+# Assuming 'cleaned_survey_data' is your data frame and it's already loaded in R
+# First, check that all required variables are present in 'cleaned_survey_data'
+required_vars <- c("vote_conservative", "age", "sex", "province", "education", "religion", "income_before_tax")
+missing_vars <- setdiff(required_vars, names(cleaned_survey_data))
+
+if(length(missing_vars) > 0) {
+  stop(paste("The following required variables are missing in the data frame:", paste(missing_vars, collapse=", ")))
+}
+
+# If all variables are present, fit the linear model
+model <- lm(vote_conservative ~ age + sex + province + education + religion + income_before_tax, data=cleaned_survey_data)
+
+# Use broom::tidy to get a tidy data frame of the model summary with confidence intervals
+library(broom)
+model_summary <- broom::tidy(model, conf.int = TRUE)
+
+
+ggplot(model_summary, aes(x = estimate, y = reorder(term, estimate))) +
+  geom_pointrange(aes(xmin = conf.low, xmax = conf.high)) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "red") +
+  labs(x = "Estimate", y = "Coefficient", title = "Coefficient Estimates") +
+  theme_minimal()
+
+```
+
+
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+
+library(ggplot2)
+library(dplyr)
+
+# Assuming 'your_data' is your dataframe and it contains the variables 'province' and 'vote_conservative'
+# where 'vote_conservative' is a binary (0/1) indicating whether a vote for conservative was cast.
+
+# Calculate proportions and confidence intervals by province
+conservative_votes_by_province <- cleaned_survey_data %>%
+  group_by(province) %>%
+  summarise(
+    proportion = mean(vote_conservative, na.rm = TRUE),
+    lower = proportion - qnorm(0.975) * sqrt(proportion * (1 - proportion) / n()),
+    upper = proportion + qnorm(0.975) * sqrt(proportion * (1 - proportion) / n())
+  )
+
+# Create the plot
+ggplot(conservative_votes_by_province, aes(x = reorder(province, -proportion), y = proportion)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.2) +
+  coord_flip() +  # Flip the axes to have provinces on the y-axis
+  labs(x = "Proportion", y = "Province", title = "Estimated Proportion of Voting for Conservative by Province") +
+  theme_minimal()
+
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+library(ggplot2)
+library(dplyr)
+
+conservative_votes_by_education <- cleaned_survey_data %>%
+  group_by(education) %>%
+  summarise(
+    proportion = mean(vote_conservative, na.rm = TRUE),
+    lower = proportion - qnorm(0.975) * sqrt(proportion * (1 - proportion) / n()),
+    upper = proportion + qnorm(0.975) * sqrt(proportion * (1 - proportion) / n())
+  ) %>%
+  arrange(desc(proportion))  
+ggplot(conservative_votes_by_education, aes(x = reorder(education, proportion), y = proportion)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.2) +
+  coord_flip() +  
+  labs(x = "Proportion", y = "Education", title = "Proportion of Votes for Conservative by Education Level") +
+  theme_minimal()
+
+```
 
 
 
@@ -583,51 +866,32 @@ In conclusion, our binary logistic regression approach, supplemented with post-s
 
 ## Posterior predictive check
 
-```{r fig-liberal-model-1, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Posterior Predictive Check: Observed vs. Simulated Vote Counts in the Liberal Model"}
-library(bayesplot)
 
-liberal_model_plot <- pp_check(liberal_model, type = "hist") +
-  theme(plot.title = element_text(size = 10))  
 
-print(liberal_model_plot)
-```
 
-@fig-liberal-model-1 illustrates a posterior predictive check for the liberal model, comparing observed vote counts with those generated by the model's simulations.
-The dark solid line represents the observed data, while the lighter blue lines represent simulated vote counts from the posterior distribution.
-The close tracking of the simulated lines to the observed line suggests that the model can effectively replicate the patterns seen in the real vote counts.
-This indicates a good model fit, as the simulations encompass the range of observed data, providing confidence in the model's predictions.
-The alignment of the simulations with the observed data points to the adequacy of the model's structure and the priors in capturing the underlying trends of the voting behavior it aims to represent.
-The graph also visualizes the variance in the simulations, reflecting the model's probabilistic nature and the inherent uncertainty in predicting complex phenomena such as voting behavior.
-
-Histogram of posterior predictive distributions from the liberal model.
-This plot compares the observed counts of the number of votes for the Liberal party (indicated by the dark line) with the simulated counts from the posterior predictive distribution (shown as histograms).
-The overlap between the observed counts and the predictive distribution suggests how well the model captures the data.
-Areas where the observed counts fall outside the bulk of the simulated distributions may indicate model misfit.
-\newpage
-
-```{r fig-conservative-model, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Posterior Predictive Check: Observed vs. Simulated Vote Counts in the Conservative Model"}
-library(bayesplot)
-
-conservative_model_plot <- pp_check(conservative_model, type = "hist") + 
-  theme(plot.title = element_text(size = 14)) 
-print(conservative_model_plot)
-
-```
-
-@fig-conservative-model performs a posterior predictive check for a conservative model by overlaying observed vote counts against simulated data derived from the model's posterior distribution.
-The observed data is denoted by a solid line, while the simulations from the posterior are indicated by lighter lines.
-The congruence between these two sets of lines—where the simulated data traces the shape and trend of the observed data closely—suggests that the model has a high level of accuracy in reflecting the observed outcomes.
-This indicates a successful fit of the model to the data, affirming the appropriateness of the selected priors and the model's structure.
-The spread of the lighter lines around the darker one provides insight into the inherent uncertainty of the model's predictions, which is an expected characteristic of predictive modelling in complex, real-world situations.
 
 \newpage
 
-```{r fig-liberal-model, echo=FALSE, warning=FALSE, message=FALSE, fig.width=8, fig.height=6, fig.cap="Comparison of Posterior and Prior Distributions in the Liberal Model"}
 
-survey_data <- read_csv(here("data", "analysis_data", "cleaned_survey_data.csv"))
+
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.width=8, fig.height=6}
+library(bayesplot)
+library(rstanarm)
 
 prior_covariates <- normal(location = 0, scale = 2.5, autoscale = FALSE)
 prior_intercept <- normal(0, 2.5)
+
+liberal_model <- stan_glm(
+  vote_liberal ~ age + sex + province + education + religion + income_before_tax,
+  data = cleaned_survey_data,
+  family = "binomial",
+  prior = prior_covariates,
+  prior_intercept = prior_intercept,
+  chains = 4,
+  iter = 2000
+)
 
 pp_plot <- posterior_vs_prior(liberal_model) +
   theme_minimal() +
@@ -645,25 +909,42 @@ pp_plot <- posterior_vs_prior(liberal_model) +
   xlab("Density") +
   ylab("Parameters")
 
+pp_plot
 
-print(pp_plot)
 
 ```
 
-@fig-liberal-model portrays the posterior and prior distributions for parameters in a Bayesian liberal model, with a stark divergence in the intercept suggesting significant data-driven adjustments from the model's baseline estimation.
-Parameters representing demographic and geographical factors are plotted as colored dots along an axis, indicating median values and the extent of uncertainty.
-While the priors and posteriors largely overlap, indicating consistent estimates for many parameters, the intercept's noticeable shift underscores the data's impactful role in refining the model, particularly highlighting the updated understanding of the model's fundamental starting point.
 
-\newpage
 
-```{r fig-conservative-posterior, echo=FALSE, warning=FALSE, message=FALSE, fig.width=8, fig.height=6, fig.cap="Comparison of Posterior and Prior Distributions in the Conservative Model"}
+
+
+
+
+
+
+
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.width=8, fig.height=6}
 library(bayesplot)
+library(rstanarm)
+
 
 prior_covariates <- normal(location = 0, scale = 2.5, autoscale = FALSE)
 prior_intercept <- normal(0, 2.5)
 
+conservative_model <- stan_glm(
+  vote_conservative ~ age + sex + province + education + religion + income_before_tax,
+  data = cleaned_survey_data,
+  family = "binomial",
+  prior = prior_covariates,
+  prior_intercept = prior_intercept,
+  chains = 4,
+  iter = 2000
+)
 
-pp_plot <- posterior_vs_prior(conservative_model) +
+# Generate the posterior vs. prior plot for the conservative model
+pp_plot_conservative <- posterior_vs_prior(conservative_model) +
   theme_minimal() +
   scale_color_brewer(palette = "Set1") +
   theme(
@@ -679,16 +960,108 @@ pp_plot <- posterior_vs_prior(conservative_model) +
   xlab("Density") +
   ylab("Parameters")
 
-print(pp_plot)
+pp_plot_conservative
 
 ```
 
-@fig-conservative-posterior presents a side-by-side comparison of the median and spread of prior and posterior distributions for the parameters in a Bayesian model, applied to the Conservative context.
-Key findings include the posterior distribution of the "age" parameter mirroring its prior, which validates the initial assumption about its influence.
-In contrast, the intercept and sigma parameters show slight shifts, indicating the data's role in refining these estimates.
-The placement of medians for other parameters—like sex, religion, and province—demonstrates the data's impact in confirming or adjusting prior beliefs.
-Overall, the alignment of posterior distributions with priors confirms the model's accuracy and the informative value of the data in capturing the effects on the dependent variable, suggesting a robust model fit.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@fig-liberal-model
+\newpage
+
+```{r}
+#Cons CI plot
+cons_predictions <- predict(step_cons, newdata = step_cons_counts, type = "response", interval = "confidence")
+cons_CI <- data.frame(cons_predictions)
+
+cons_CI$lwr <- cons_CI$cons_predictions - 1.96 * sqrt(cons_CI$cons_predictions * (1 - cons_CI$cons_predictions) / nrow(cons_CI))
+cons_CI$upr <- cons_CI$cons_predictions + 1.96 * sqrt(cons_CI$cons_predictions * (1 - cons_CI$cons_predictions) / nrow(cons_CI))
+
+cons_CI$observation <- 1:nrow(cons_CI)
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Make sure 'sex' is part of the group_by when creating step_lib_counts
+step_lib_counts <- cleaned_survey_data %>%
+  group_by(age, sex, province, education, religion, income_before_tax) %>%
+  summarise(N_j=n(), .groups = 'drop')  # Use .groups = 'drop' to remove the grouping
+
+# Now the step_lib_counts has a 'sex' column that matches with the model's predictors
+# You can proceed with prediction
+lib_predictions <- predict(step_lib, newdata = step_lib_counts, type = "response")
+
+# After prediction, if you want to calculate confidence intervals manually, make sure
+# the calculations are vectorized and account for the grouped structure of your data
+
+# Assuming that N_j is the count of observations for each group in your summarized dataset
+lib_CI <- data.frame(lib_predictions)
+lib_CI$lwr <- lib_CI$lib_predictions - 1.96 * sqrt(lib_CI$lib_predictions * (1 - lib_CI$lib_predictions) / step_lib_counts$N_j)
+lib_CI$upr <- lib_CI$lib_predictions + 1.96 * sqrt(lib_CI$lib_predictions * (1 - lib_CI$lib_predictions) / step_lib_counts$N_j)
+
+# Here we don't need to create an 'observation' column because the plot will use grouped data
+# If you do want an 'observation' identifier, ensure it's a sequence within each group
+lib_CI$observation <- seq_len(nrow(lib_CI))
+
+```
+
+
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+lib_predictions <- predict(step_lib, newdata = step_lib_counts, type = "response", interval = "confidence")
+lib_CI <- data.frame(lib_predictions)
+
+lib_CI$lwr <- lib_CI$lib_predictions - 1.96 * sqrt(lib_CI$lib_predictions * (1 - lib_CI$lib_predictions) / nrow(lib_CI))
+lib_CI$upr <- lib_CI$lib_predictions + 1.96 * sqrt(lib_CI$lib_predictions * (1 - lib_CI$lib_predictions) / nrow(lib_CI))
+
+lib_CI$observation <- 1:nrow(lib_CI)
+
+```
+
+
+
+
+
+
+
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+ggplot(cons_CI, aes(x = cons_predictions)) +
+  geom_density(alpha = 0.5, fill = "blue") +
+  labs(x = "Predicted Probability", y = "Density", title = "Plot.9 The Density Plot for Predicted Probabilities for Conservative")
+```
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+ggplot(lib_CI, aes(x = lib_predictions, fill = "Liberal")) +
+  geom_density(alpha = 0.5, fill = "green") +
+  labs(x = "Predicted Probability", y = "Density", title = "Plot.10 The Density Plot for Predicted Probabilities for Liberal")
+```
+
+
+
+
+@fig-conservative-posterior 
 \newpage
 
 ## Diagnostics
