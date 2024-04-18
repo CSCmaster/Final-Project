@@ -19,6 +19,7 @@ editor:
 
 ```{r setup, include=FALSE, message=FALSE}
 ## Import necessary libraries
+install.packages("MASS")
 library(ggplot2)
 library(dplyr)
 library(tidyverse)
@@ -30,6 +31,8 @@ library(rstanarm)
 library(arrow)
 library(tidybayes)
 library(bayesplot)
+library(MASS)
+library(broom)
 ```
 
 # Introduction
@@ -44,7 +47,14 @@ The government's ambitious immigration plan aims to admit 500,000 migrants annua
 The Conservative Party, with a focus on economic prosperity, emphasizes attracting highly skilled immigrants while addressing concerns like living costs and housing issues[@Elections_2023].
 
 ## Hypothesis
-To enhance control and prevention of illegal immigration, the Liberal Party has suggested modifications to the Immigration and Refugee Protection Act. They propose establishing an annual refugee quota of 250, specifically aimed at supporting human rights defenders, journalists, and humanitarian workers seeking safety and resettlement in Canada. Looking ahead, the Liberal Party intends to incrementally increase this refugee quota, aiming for refugees to comprise 15% of all immigrants. Conversely, the share of economic immigrants is planned to decrease to 58%, while the family reunification immigrant ratio will remain constant. These proportions are expected to be maintained over the next two years. Moreover, the Canadian national government recently unveiled an ambitious plan to admit 500,000 migrants annually by 2025, looking for nearly 1.5 million newcomers in Canada within the next three years (Canada's Immigration Levels Plan 2024-2026). Historically, the Liberal government's immigration strategy tends to be more permissive, offering broader entry routes compared to that of the Conservative Party[@Nakhaie_2006].
+
+To enhance control and prevention of illegal immigration, the Liberal Party has suggested modifications to the Immigration and Refugee Protection Act.
+They propose establishing an annual refugee quota of 250, specifically aimed at supporting human rights defenders, journalists, and humanitarian workers seeking safety and resettlement in Canada.
+Looking ahead, the Liberal Party intends to incrementally increase this refugee quota, aiming for refugees to comprise 15% of all immigrants.
+Conversely, the share of economic immigrants is planned to decrease to 58%, while the family reunification immigrant ratio will remain constant.
+These proportions are expected to be maintained over the next two years.
+Moreover, the Canadian national government recently unveiled an ambitious plan to admit 500,000 migrants annually by 2025, looking for nearly 1.5 million newcomers in Canada within the next three years (Canada's Immigration Levels Plan 2024-2026).
+Historically, the Liberal government's immigration strategy tends to be more permissive, offering broader entry routes compared to that of the Conservative Party[@Nakhaie_2006].
 Based on our analysis of historical trends, governmental policies, and electoral procedures, our hypothesis aligns with the prevailing expectation that the Conservatives will emerge as the likely winners in the 2025 election.
 **We anticipate that the Liberals will likely secure the highest number of votes, with the Conservatives expected to closely follow in second place.** Our research indicates that the vote-counting process in Canada significantly influences the outcome, as voters do not directly elect a specific prime minister candidate.
 Initially, all votes are tallied based on first preferences.
@@ -56,7 +66,14 @@ Hence, our objective is to forecast the election probabilities for the Conservat
 
 ## Terminology
 
-In this paper, I used binary logistic regression models to forecast the likelihood of individuals affiliating with the Conservative or Liberal parties.Binary logistic regression is a statistical technique tailored for predicting binary outcomes, where the variable under consideration has two possible results. In our study, these outcomes represent the probability of individuals aligning with each of the two parties.Each party's likelihood will be predicted through separate logistic regression models, with the response variables indicating whether individuals vote for the corresponding party or not. The predictors used in these models include age, province, education, religion, and income before tax. The variable "sex" will be initially included but later removed after AIC model testing, as further elaborated in the model selection section. This regression approach is particularly advantageous when there's a nonlinear relationship between independent and dependent variables, especially in scenarios with categorical dependent variables like ours. Additionally, we will incorporate post-stratification in our analysis to enhance accuracy. Post-stratification helps refine precision estimates by ensuring that the sample is more representative of the entire population. We utilize this technique to predict the probability of voter shares for the Liberal or Conservative parties in the upcoming election.
+In this paper, I used binary logistic regression models to forecast the likelihood of individuals affiliating with the Conservative or Liberal parties.Binary logistic regression is a statistical technique tailored for predicting binary outcomes, where the variable under consideration has two possible results.
+In our study, these outcomes represent the probability of individuals aligning with each of the two parties.Each party's likelihood will be predicted through separate logistic regression models, with the response variables indicating whether individuals vote for the corresponding party or not.
+The predictors used in these models include age, province, education, religion, and income before tax.
+The variable "sex" will be initially included but later removed after AIC model testing, as further elaborated in the model selection section.
+This regression approach is particularly advantageous when there's a nonlinear relationship between independent and dependent variables, especially in scenarios with categorical dependent variables like ours.
+Additionally, we will incorporate post-stratification in our analysis to enhance accuracy.
+Post-stratification helps refine precision estimates by ensuring that the sample is more representative of the entire population.
+We utilize this technique to predict the probability of voter shares for the Liberal or Conservative parties in the upcoming election.
 
 # Data
 
@@ -69,14 +86,14 @@ Surveys, however, offer a more cost-effective and quicker alternative, especiall
 **Census Data**: Census data refer to information systematically gathered from the entire population of a defined area at a specific point in time.
 The census data we have comes from the General Social Survey (GSS), conducted on August 12, 2022.
 We've made necessary adjustments to ensure it matches our survey data.
-Data collection aims to provide a detailed snapshot of demographic, economic, and social characteristics.The GSS is a nationwide survey program designed to collect data on societal trends, behaviors, and attributes across the entire population, offering insights into the changing dynamics of communities.
+Data collection aims to provide a detailed snapshot of demographic, economic, and social characteristics.The GSS is a nationwide survey program designed to collect data on societal trends, behaviors, and attributes across the entire population, offering insights into the changing dynamics of communities[@GSS_2022].
 
 **Survey Data**: Survey data, are collected from a sample of the population rather than every individual.
 This method is often used when it's impractical or unnecessary to include everyone.
 Survey data aim to infer the characteristics of the larger population based on the responses of the sample.
 The survey data, obtained from the Canada Election Study (CES) in 2023, includes responses from over 37,000 participants.
 The CES focuses specifically on voter behavior, attitudes, and the electoral process within the Canadian context.
-Unlike the GSS, which aims for a comprehensive overview, the CES targets specific topics of interest to derive insights from a segment of the population.
+Unlike the GSS, which aims for a comprehensive overview, the CES targets specific topics of interest to derive insights from a segment of the population[@CES_2023].
 
 ## Data analysis Tools
 
@@ -146,6 +163,7 @@ Assign "Less than \$25,000" and "\$25,000 to \$49,999" incomes to the "Lower Mid
 ## Sample of cleaned Data
 
 ### Data Summary Measures
+
 ```{r}
 #| label: tbl-data-summary-numeric
 #| tbl-cap: Summary of Numerical Variables Across Census and Survey Data
@@ -165,12 +183,12 @@ knitr::kable(numeric_summary_df)
 
 ```
 
-
 @tbl-data-summary-numeric summaries the census and survey data reveals age distributions with the census data capturing a narrower age range (15 to 80 years, with a median of 54) compared to the broader age span in the survey data (18 to 97 years, with a median of 53).
 The average ages for the census and survey populations are 52.18 and 51.3 years, respectively.
 Voting data from the survey indicate that a quarter of the respondents are inclined towards the Liberal Party, as shown by an average of 0.267, while a slightly lower average of 0.249 suggests Conservative support; both parties have 50% of the population not voting for them, with a median of 0.
 The upper bounds for Liberal and Conservative votes are 1, meaning some respondents indicated a vote for these parties, while the third quartile for Conservative votes indicates less overall support compared to the Liberal Party.
 
+\newpage
 ### Data Visualization
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
@@ -200,6 +218,7 @@ The census distribution exhibits a unimodal peak around the 50-60 year age range
 Conversely, the survey dataset portrays a wider distribution, extending towards older ages with a noticeable skew to the right, indicating the presence of older individuals up to 97 years old.
 The regions of overlap appear purple, indicating age ranges common to both datasets, with the census data generally showing higher frequencies in most age categories.
 This comparison highlights the distinct age profiles captured by the two sources, with a significant representation of middle-aged individuals in both, with the survey dataset capturing a broader demographic.
+
 \newpage
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
@@ -224,6 +243,7 @@ This peak towers above all other survey data points and also surpasses the censu
 In contrast, the lowest point for the survey dataset appears in Prince Edward Island, with very few respondents, paralleled by a similarly low count for this province in the census dataset, shown in red.
 Notably, the census data peaks in Quebec, where the red bar indicates the highest frequency among all provinces for the census, while Alberta's census count is at its lowest, barely rising above the baseline.
 This visual comparison reveals not only the variations in population coverage between the two types of data but also significant regional differences within the datasets, which could reflect varied sampling methods or demographic distributions.
+
 \newpage
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
@@ -260,6 +280,7 @@ This discrepancy highlights potential differences in sampling methods, response 
 The most pronounced difference is at the "Limited Education" level, where the Survey dataset shows significantly lower counts compared to the Census dataset, indicating a possible overrepresentation of individuals with limited education in the censaus or an underrepresentation in the survey.
 The data suggest that demographic, socioeconomic, or regional factors may influence the education level distribution in each dataset, and further statistical analysis could be warranted to determine the significance and cause of these differences.
 The differences observed in the chart might also reflect methodological variations in data collection or inherent biases within the sampling frames used.
+
 \newpage
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
@@ -285,6 +306,7 @@ The x-axis is categorized into 'No' for non-affiliated individuals and 'Yes' for
 A striking contrast is observed in the 'Yes' category, where the census data’s count towers over that of the survey, indicating a greater number of religiously affiliated respondents.
 Conversely, for those reporting no religious affiliation, the survey's lighter pink bar is comparable in height to the census's, suggesting a more even distribution between the two datasets.
 This discrepancy underscores a pronounced difference in the representation of religious affiliation between the two data sources, potentially alluding to divergent demographic characteristics or response patterns within the datasets.
+
 \newpage
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
@@ -302,9 +324,16 @@ ggplot(combined_data_income, aes(x = IncomeBeforeTax, fill = Dataset)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
 ```
 
-@fig-income-distribution illustrates the distribution of different socioeconomic groups before taxation, categorized by income levels. It contrasts the counts of individuals within each income bracket as recorded in census data (represented by the deep red bars) and survey data (represented by the orange bars).Both the census and survey data show comparable figures for the 'Upper Middle Class to Wealthy', 'Upper Class', 'Lower Middle Class to Poor', and 'Lower Class' categories. However, a stark difference is noted in the 'Middle Class' bracket, where the survey dataset records a noticeably higher count (shorter orange bar) in comparison to the census dataset (tall deep red bar).
+@fig-income-distribution illustrates the distribution of different socioeconomic groups before taxation, categorized by income levels.
+It contrasts the counts of individuals within each income bracket as recorded in census data (represented by the deep red bars) and survey data (represented by the orange bars).Both the census and survey data show comparable figures for the 'Upper Middle Class to Wealthy', 'Upper Class', 'Lower Middle Class to Poor', and 'Lower Class' categories.
+However, a stark difference is noted in the 'Middle Class' bracket, where the survey dataset records a noticeably higher count (shorter orange bar) in comparison to the census dataset (tall deep red bar).
 
-The choice of colors—deep red for the census and orange for the survey—facilitates a clear distinction between the two sources, allowing for an immediate visual comparison. The graph suggests a more substantial representation of the lower-income groups in the census data compared to the survey data. This might imply that the census has a broader capture or possibly that different methodologies between the two data collection approaches affect the representation of income levels.In the graph, the tallest bar corresponds to the 'Lower Middle Class to Poor' category in the census data, indicated by the deep red color. This suggests that the census data has captured a significantly larger number of individuals in this income bracket compared to the survey data. The shortest bar appears to be in the 'Upper Middle Class to Wealthy' category for the survey data, represented in orange. This indicates that, according to the survey data, there are fewer individuals in this highest income bracket compared to the counts of other categories within the same dataset.
+The choice of colors—deep red for the census and orange for the survey—facilitates a clear distinction between the two sources, allowing for an immediate visual comparison.
+The graph suggests a more substantial representation of the lower-income groups in the census data compared to the survey data.
+This might imply that the census has a broader capture or possibly that different methodologies between the two data collection approaches affect the representation of income levels.In the graph, the tallest bar corresponds to the 'Lower Middle Class to Poor' category in the census data, indicated by the deep red color.
+This suggests that the census data has captured a significantly larger number of individuals in this income bracket compared to the survey data.
+The shortest bar appears to be in the 'Upper Middle Class to Wealthy' category for the survey data, represented in orange.
+This indicates that, according to the survey data, there are fewer individuals in this highest income bracket compared to the counts of other categories within the same dataset.
 
 \newpage
 
@@ -325,6 +354,7 @@ ggplot(df_long, aes(x = Party, fill = as.factor(Vote))) +
 Notably, there is a substantial number of non-voters in the Conservative category, exceeding their Liberal counterparts, suggesting a larger disenchantment or mobilization challenge within the Conservative base.
 Despite this, the voter turnout (blue bars) is fairly balanced between the parties, indicating a competitive engagement among those who participated in the vote.
 The overall higher presence of red bars signifies a general trend of voter disengagement, which may warrant further investigation through regression analysis and post-stratification to grasp the full scope of electoral dynamics and the broader implications for the Canadian democratic process.
+
 \newpage
 
 ## Measurement
@@ -368,6 +398,7 @@ This process streamlined the dataset by focusing on essential variables for soci
 The cleaned data was then saved in both CSV and Parquet formats to facilitate accessibility and further analysis.
 
 # Model
+
 We utilized the rstanarm package for constructing the generalized linear model[@R-rstanarm], the rstanarm package serves as a user-friendly interface in R for fitting Bayesian regression models using the Stan probabilistic programming language.
 It enables users to effortlessly construct various types of regression models, including linear, logistic, and Poisson regression, while leveraging the power of Bayesian methods for inference.
 By seamlessly integrating with Stan, rstanarm provides efficient algorithms for model fitting and accurate estimates of uncertainty.
@@ -388,53 +419,47 @@ Upon reviewing the p-values, the AIC stepwise selection method was chosen to ref
 The last stage incorporated post-stratification to gauge the distribution of voter preferences across the identified political factions.
 This involved segmenting the populace according to our model's predictors and calculating the voting proportions for each party within these segments.
 
-
 ## Model Set-up
 
 We define our Bayesian logistic regression model for the probability of an individual voting for the Liberal/Conservative party as follows:
 
 -   $y_i$: Binary outcome of voting for the Liberal/Conservative party (1) or not (0)
--   $\pi_i$: Probability of voting for the Liberal/Conservative party
-
+-   $\log(\frac{\pi_i}{1-\pi_i})$: Probability of voting for the Liberal/Conservative party
 
 ```{=tex}
 \begin{align}
 y_i | \pi_i &\sim \text{Bernoulli}(\pi_i) \\
-\text{logit}(\pi_i) &= \beta_0 + \beta_1 x_{i,\text{age}} + \beta_2 x_{i,\text{gender}} + \beta_3 x_{i,\text{province}} + \beta_4 x_{i,\text{religion}} + \beta_5 x_{i,\text{income}} + \beta_6 x_{i,\text{education}} \\
+\text{logit}(\frac{\pi_i}{1-\pi_i}) &= \beta_0 + \beta_1 x_{i,\text{age}} + \beta_2 x_{i,\text{gender}} + \beta_3 x_{i,\text{province}} + \beta_4 x_{i,\text{religion}} + \beta_5 x_{i,\text{income}} + \beta_6 x_{i,\text{education}} \\
 \beta_0 &\sim \text{Normal}(0, 1) \\
 \beta_1, \beta_2, \beta_3, \beta_4, \beta_5, \beta_6 &\sim \text{Normal}(0, 1)
 \end{align}
-
 ```
-
-
-
-
-The model, as formulated in the Bayesian logistic regression framework, is designed to examine the impact of various sociodemographic factors on the probability of an individual voting for a specific political party, such as the Liberals or Conservatives in Canada. The probability $p_i$of a particular voting outcome follows a Bernoulli distribution, where each individual's probability of voting for the party is modeled using logistic regression.
+The model, as formulated in the Bayesian logistic regression framework, is designed to examine the impact of various sociodemographic factors on the probability of an individual voting for a specific political party, such as the Liberals or Conservatives in Canada.
+The probability $\log(\frac{\pi_i}{1-\pi_i})$of a particular voting outcome follows a Bernoulli distribution, where each individual's probability of voting for the party is modeled using logistic regression.
 
 ## Components of the Model
 
-## Bernoulli Distribution
-Each binary outcome $y_i$ (whether an individual votes for the party or not) follows a Bernoulli distribution with success probability $pi_i$, which is the probability that $y_i = 1$.
+**Bernoulli Distribution** Each binary outcome $y_i$ (whether an individual votes for the party or not) follows a Bernoulli distribution with success probability $\log(\frac{\pi_i}{1-\pi_i})$, which is the probability that $y_i = 1$.
 
-### Logit Link Function
-The logistic function or logit link transforms the linear combination of predictors into a probability (0 to 1). It is defined as $\log(\frac{\pi_i}{1-\pi_i})$, mapping real numbers from the linear predictors to the interval $[0,1]$.
+**Logit Link Function** The logistic function or logit link transforms the linear combination of predictors into a probability (0 to 1).
+It is defined as $\log(\frac{\pi_i}{1-\pi_i})$, mapping real numbers from the linear predictors to the interval $[0,1]$.
 
-### Predictors and Coefficients
-   - $\beta_0$ (Intercept): Represents the baseline log-odds of voting for the party when all predictor variables are at zero or their reference categories.
-   - $\beta_1$ (Age): Reflects the influence of age on the probability of voting for the party. A positive $\beta_1$ indicates increasing age is associated with a higher likelihood of voting for the party.
-   - $\beta_2$(Gender): Adjusts the probability based on gender, typically comparing males to females if females are the reference category.
-   - $\beta_3$(Province): Accounts for regional variations in voting patterns, with coefficients for each province relative to a reference province.
-   - $\beta_4$ (Religion): Represents the difference in voting probability between individuals identifying with a religion versus those who do not.
-   - $\beta_5$ (Income): Captures the effect of income on voting behavior.
-   - $\beta_6$ (Education): Reflects how varying levels of education influence voting decisions.
+**Predictors and Coefficients** - $\beta_0$ (Intercept): Represents the baseline log-odds of voting for the party when all predictor variables are at zero or their reference categories.
+- $\beta_1$ (Age): Reflects the influence of age on the probability of voting for the party.
+A positive $\beta_1$ indicates increasing age is associated with a higher likelihood of voting for the party.
+- $\beta_2$(Gender): Adjusts the probability based on gender, typically comparing males to females if females are the reference category.
+- $\beta_3$(Province): Accounts for regional variations in voting patterns, with coefficients for each province relative to a reference province.
+- $\beta_4$ (Religion): Represents the difference in voting probability between individuals identifying with a religion versus those who do not.
+- $\beta_5$ (Income): Captures the effect of income on voting behavior.
+- $\beta_6$ (Education): Reflects how varying levels of education influence voting decisions.
 
-### Prior Distributions
-All coefficients, including the intercept, are assumed to follow a Normal(0, 1) distribution as priors. These priors are weakly informative, centering the expected value of each effect around zero but allowing the data to inform the final posterior distributions. This approach helps in regularizing the estimates, particularly in complex models or when data are limited.
+**Prior Distributions** All coefficients, including the intercept, are assumed to follow a Normal(0, 1) distribution as priors.
+These priors are weakly informative, centering the expected value of each effect around zero but allowing the data to inform the final posterior distributions.
+This approach helps in regularizing the estimates, particularly in complex models or when data are limited.
 
-
-The model effectively quantifies how demographic and socioeconomic factors influence political behavior using Bayesian inference. This method provides a probabilistic framework that not only gives estimates of the effects but also accounts for uncertainty in a coherent way, offering more flexibility and insight than traditional frequentist approaches. By assuming normal priors, you are indicating a prior belief that none of the predictors has an unusually large effect, but you remain open to being informed by the data collected.
-
+The model effectively quantifies how demographic and socioeconomic factors influence political behavior using Bayesian inference.
+This method provides a probabilistic framework that not only gives estimates of the effects but also accounts for uncertainty in a coherent way, offering more flexibility and insight than traditional frequentist approaches.
+By assuming normal priors, it indicating a prior belief that none of the predictors has an unusually large effect, but remain open to being informed by the data collected.
 
 ## Model Equation
 
@@ -444,9 +469,7 @@ These include province, age, sex,pre-tax income, religion, and education.
 Among these, age stands out as the sole continuous variable, while the rest are categorical.
 Consequently, the framework for our model is structured as follows.
 
-$$log(\frac{p}{1-p}) = \beta_0+\beta_1x_{age}+\beta_2x_{gender}+\beta_3x_{porvince}+\beta_{4}x_{religion}+\beta_{5}x_{income}+\beta_{6}x_{education}$$
-## Model Coefficients Interpretation
-$p$ is the probability of an individual casting their vote for a certain political party (Liberal or Conservative).
+$$log(\frac{p}{1-p}) = \beta_0+\beta_1x_{age}+\beta_2x_{gender}+\beta_3x_{porvince}+\beta_{4}x_{religion}+\beta_{5}x_{income}+\beta_{6}x_{education}$$ **Model Coefficients Interpretation** $p$ is the probability of an individual casting their vote for a certain political party (Liberal or Conservative).
 
 $\beta_0$(Intercept): This is the base log odds of an individual voting for the political party when all the explanatory variables are at their reference levels.
 
@@ -491,22 +514,16 @@ Subsequently, we combine these to ascertain the aggregate voting proportion as p
 
 ## Analysis of AIC Model
 
-
-
 ```{r , echo=FALSE, message=FALSE, warning=FALSE}
 liberal_model <- readRDS(here("models", "liberal_model.rds"))
 conservative_model <- readRDS(here("models", "conservative_model.rds"))
 ```
-
-
-
 
 ```{r, echo=FALSE, message=FALSE, warning = FALSE}
 #| label: tbl-coef-summary-conservative
 #| tbl-cap: Coefficients of the conservative Model
 #| echo: false
 
-install.packages("MASS")
 
 library(MASS)
 library(broom)
@@ -519,23 +536,24 @@ tidy_cons <- broom::tidy(step_cons, conf.int = TRUE)
 
 tidy_cons_selected <- tidy_cons[, c("term", "estimate", "std.error", "conf.low", "conf.high")]
 
-kable_output <- knitr::kable(tidy_cons_selected, format = "html", caption = "Model Summary for Conservative Vote Prediction with Confidence Intervals")
+kable_output <- knitr::kable(tidy_cons_selected, format = "html")
 
 kable_output
 
 
 ```
 
+@tbl-coef-summary-conservative presents calculated coefficients that integrate into our logistic regression model for conservative party, derived from the survey dataset from General Social Survey[@GSS_2022]. The `knitr` package [@rKnitr] was utilized to generate the table. These coefficients represent the adjusted effects of various predictors such as age, province, education, religion, and income brackets on the log odds of an individual reporting a certain behavior or characteristic.
 
+In the context of R Studio, the `MASS` package[@MASS], although not directly used here, is often employed for its functions related to linear and quadratic discriminant function analysis, while the `broom` package tidies the output of statistical tests into data frames to facilitate further data analysis or visualization. Specifically, `broom` [@broom]can convert the summary output of regression models into an easy-to-handle data frame, as shown in the table.
 
-
+The table details the point estimates for each predictor along with their standard errors and confidence intervals, providing insight into the precision of the estimates and the potential range within which the true value of the coefficients may lie. Notably, the intercept and coefficients for variables such as 'provincePrince Edward Island' and 'income_before_taxUpper Class' have both negative and positive values, indicating their varied influence on the outcome variable. The confidence intervals suggest the level of certainty about the estimates, where a narrower interval represents a more precise estimate. These results contribute to our understanding of the factors influencing voter behavior, guiding the development of targeted strategies for engagement and policy-making.
 
 ```{r, echo=FALSE, message=FALSE, warning = FALSE}
 #| label: tbl-coef-summary-liberal
 #| tbl-cap: Coefficients of the Liberal Model
 #| echo: false
 
-# Assuming 'vote_liberal' is the column in your 'cleaned_survey_data' that represents voting for liberal
 initial_model_lib <- lm(vote_liberal ~ age + sex + province + education + religion + income_before_tax, data=cleaned_survey_data)
 step_lib <- stepAIC(initial_model_lib, direction="both", trace = FALSE)  
 
@@ -543,34 +561,18 @@ tidy_lib <- broom::tidy(step_lib, conf.int = TRUE)
 
 tidy_lib_selected <- tidy_lib[, c("term", "estimate", "std.error", "conf.low", "conf.high")]
 
-kable_output_lib <- knitr::kable(tidy_lib_selected, format = "html", caption = "Model Summary for Liberal Vote Prediction with Confidence Intervals")
+kable_output_lib <- knitr::kable(tidy_lib_selected, format = "html")
 kable_output_lib
-
-
-
-
 
 ```
 
+@tbl-coef-summary-liberal provided outlines the logistic regression model coefficients pertinent to predicting voting behavior for the Liberal Party, based on the survey data extracted from the General Social Survey [@GSS_2022]. Fabricated through the adept use of the `knitr` package [@rKnitr], the table concisely encapsulates the nuanced influence of various demographic and socioeconomic predictors — age, gender, province, educational, religion, and income — on the likelihood of an individual voting Liberal.
+
+Diving into the details, the table lists the estimated coefficients and their accompanying standard errors, offering a statistical measure of the precision of the estimates. The confidence intervals provided for each coefficient — lower (conf.low) and higher (conf.high) bounds — delineate the range in which the true coefficient values are likely to fall, with tighter intervals indicating higher precision. For instance, the negative coefficient for 'provincePrince Edward Island' suggests a lesser inclination to vote Liberal in that region compared to the reference province, while the positive coefficients for 'provinceNewfoundland and Labrador' and 'provinceOntario' reflect a stronger propensity for Liberal support.
+
+While not employed directly in the analysis leading to this table, the `MASS` package [@MASS] is typically revered for its robust functionalities in linear discriminant analysis, an alternative approach to examining group differences. Complementing this, the `broom` package [@broom] elegantly streamlines the model outputs into tidy data frames, greatly simplifying the transition from statistical testing to interpretable results and potential graphical representation.
 
 
-
-@tbl-coef-summary-liberal
-
-`
-
-@tbl-coef-summary-conservative
-
-
-
-
-
-
-
-
-
-
-@tbl-ypshat-summary
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 if (!require(MASS)) {
     install.packages("MASS")
@@ -589,9 +591,6 @@ step_lib <- stepAIC(m_lib, direction = "both", trace = FALSE)
 
 ```
 
-
-
-
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, include = FALSE}
 
 m_lib <- glm(vote_liberal ~ age+sex+province+education+religion+income_before_tax,
@@ -601,9 +600,6 @@ m_lib <- glm(vote_liberal ~ age+sex+province+education+religion+income_before_ta
 step_lib = stepAIC(m_lib, direction = "both", k = 2)
 ```
 
-
-
-
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, include = FALSE}
 m_cons <- glm(vote_conservative ~ age+sex+province+education+religion+income_before_tax,
           data=cleaned_survey_data, family = "binomial")
@@ -611,20 +607,6 @@ m_cons <- glm(vote_conservative ~ age+sex+province+education+religion+income_bef
 step_cons <- stepAIC(m_cons, direction = "both", k = 2)
 
 ```
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, include = FALSE}
 
@@ -688,29 +670,28 @@ lib_estimate <- lib_counts %>%
 
 ```
 
-
-
-
-
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
-library(dplyr)
+```{r, label="tbl-yps-summary", echo=FALSE, message=FALSE, warning=FALSE}
+#| label: tbl-yps-summary
+#| tbl-cap: The Hat of yPS For Each Party, Between Primary Model and Final Model
+#| echo: false
 Party_Name <- c("Conservative", "Liberal")
 yPS_primary <- c(cons_estimate,lib_estimate)
 yPS_AIC <- c(cons_aic ,lib_aic)
 
-knitr::kable(tibble(Party_Name, yPS_primary, yPS_AIC), caption = "The Hat of yPS For Each Party, Between Primary Model and Final Model")
+knitr::kable(tibble(Party_Name, yPS_primary, yPS_AIC))
 
 ```
 
-
-
-
+Based on @tbl-yps-summary, the estimates suggest differing probabilities for each major party.
+For the Conservative Party, the final model adjustment indicates an estimated voting probability of about 28.66%.
+This projection implies that roughly 28.66% of the population, characterized by certain age, province, education, religion, and income factors, would likely vote Conservative in the 2025 Canadian Election.
+In contrast, the Liberal Party's estimated voting probability is slightly higher at approximately 28.83% under the AIC-adjusted model, suggesting that nearly 28.83% of individuals with the specified demographics are predicted to cast their vote for the Liberals.
+\newpage
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
-library(ggplot2)
-library(dplyr)
-library(broom)
-
+#| label: fig-liberal-coefficients
+#| tbl-cap: "Coefficient Estimates for Liberal Vote Prediction"
+#| echo: false
 required_vars <- c("vote_liberal", "age", "sex", "province", "education", "religion", "income_before_tax")
 missing_vars <- setdiff(required_vars, names(cleaned_survey_data))
 
@@ -723,93 +704,113 @@ model_summary_lib <- broom::tidy(model_lib, conf.int = TRUE)
 ggplot(model_summary_lib, aes(x = estimate, y = reorder(term, estimate))) +
   geom_pointrange(aes(xmin = conf.low, xmax = conf.high)) +
   geom_vline(xintercept = 0, linetype = "dashed", color = "red") +
-  labs(x = "Estimate", y = "Coefficient", title = "Coefficient Estimates for Liberal Vote Prediction") +
+  labs(x = "Estimate", y = "Coefficient") +
   theme_minimal()
 
 ```
 
-@
- 
+@fig-liberal-coefficients displays the logistic regression model's estimated coefficients relating to the likelihood of supporting the Liberal party, based on various factors. Each point (dot) on the plot signifies the model's coefficient for a specific predictor, with the position on the x-axis indicating the magnitude and direction of the predictor's effect. Horizontal lines represent the confidence intervals, giving a visual representation of the estimate's precision and the range within which we can be confident that the actual value of the coefficient lies.
 
+The intercept, situated near zero, represents the baseline log-odds of voting for the Liberal party when all predictors are at their reference levels. The estimates for provinces such as Newfoundland and Labrador, Ontario, and New Brunswick are situated to the right of the intercept, demonstrating a positive relationship with Liberal support. Conversely, the coefficient for Prince Edward Island is markedly left of the intercept, suggesting a negative association with the likelihood of voting for the Liberals.
 
+Notably, the coefficient for 'sexMale' is negative, indicating that being male is associated with a lower likelihood of voting for the Liberal party compared to the reference group, presumably females. Age shows a small positive coefficient, hinting at a slight increase in Liberal support with advancing age.
+
+'Upper Class' and 'Middle Class' both have positive coefficients, suggesting higher income brackets may correlate with increased support for the Liberal party. In terms of education, 'Low Education' and 'Some Education' have negative coefficients, indicating these groups might be less inclined to vote Liberal.
+
+The red dashed line at zero is a reference that indicates no effect; coefficients to the right demonstrate a positive influence on Liberal support, while those to the left indicate a negative influence. The plot orders the variables on the y-axis, providing a hierarchy of impact, from the most positive at the top to the most negative at the bottom.
+
+This figure offers a nuanced understanding of how different demographic and socioeconomic variables might influence Liberal party support, informing strategic political engagement and policy development. The spread of the confidence intervals highlights areas of greater or lesser certainty in the model's predictions, essential for interpreting the robustness of the variables' effects.
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
-library(ggplot2)
-library(dplyr)
-
-# Assuming 'cleaned_survey_data' contains 'province' and 'vote_liberal',
-# where 'vote_liberal' is a binary (0/1) indicating whether a vote for liberal was cast.
-
-# Calculate proportions and confidence intervals by province for the liberal party
+#| label: fig-liberal-votes-by-province
+#| tbl-cap: "Estimated Proportion of Voting for Liberal by Province"
+#| echo: false
 liberal_votes_by_province <- cleaned_survey_data %>%
   group_by(province) %>%
   summarise(
     proportion = mean(vote_liberal, na.rm = TRUE),
     lower = proportion - qnorm(0.975) * sqrt(proportion * (1 - proportion) / n()),
     upper = proportion + qnorm(0.975) * sqrt(proportion * (1 - proportion) / n()),
-    .groups = 'drop'  # Drop grouping for further manipulation if needed
+    .groups = 'drop'  
   ) %>%
-  ungroup()  # Ensure we remove the grouping for the ggplot
+  ungroup() 
 
-# Create the plot for the liberal party
 ggplot(liberal_votes_by_province, aes(x = reorder(province, -proportion), y = proportion)) +
   geom_point() +
   geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.2) +
-  coord_flip() +  # Flip the axes to have provinces on the y-axis
-  labs(x = "Proportion", y = "Province", title = "Estimated Proportion of Voting for Liberal by Province") +
+  coord_flip() +  
+  labs(x = "Proportion", y = "Province") +
   theme_minimal()
 
 
 ```
+@fig-liberal-votes-by-province visualizes the estimated proportions of support for the Liberal party across various Canadian provinces. Each dot on the graph indicates the mean proportion of Liberal votes within a province, while the horizontal lines represent the error bars, which detail the confidence interval for these proportions. The span of each line reflects the level of uncertainty or variability in the estimate—wider lines suggest more uncertainty.
 
+From top to bottom, provinces are listed in order of descending support for the Liberal party. For example, Newfoundland and Labrador exhibit the highest point estimate, indicating a stronger inclination towards the Liberal party, whereas Prince Edward Island shows a significantly lower estimate of Liberal support. There is no dashed line at the 50% mark here, unlike in the referenced Trump support graph, because the graph aims to show the varying levels of Liberal support across provinces rather than a majority threshold.
+
+The variability in the error bars suggests that certain provinces, such as Ontario and Newfoundland and Labrador, have more precise estimates of Liberal support, while provinces like Nova Scotia have wider confidence intervals, indicating less certainty in the estimated proportion. This graphic presentation allows for an at-a-glance comparison of Liberal party support among the provinces, highlighting regions where the party is either particularly strong or may need to focus more campaign efforts.
+\newpage
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
-library(ggplot2)
-library(dplyr)
-
-# Assuming 'cleaned_survey_data' is your dataframe and it contains the variables 'education' and 'vote_liberal'
-# where 'vote_liberal' is a binary (0/1) indicating whether a vote for liberal was cast.
-
+#| label: fig-liberal-votes-by-education
+#| fig-cap: "Proportion of Votes for Liberal by Education Level"
+#| echo: false
 liberal_votes_by_education <- cleaned_survey_data %>%
   group_by(education) %>%
   summarise(
     proportion = mean(vote_liberal, na.rm = TRUE),
     lower = proportion - qnorm(0.975) * sqrt(proportion * (1 - proportion) / n()),
     upper = proportion + qnorm(0.975) * sqrt(proportion * (1 - proportion) / n()),
-    .groups = 'drop'  # This will automatically ungroup the data (requires dplyr version 1.0.0 or higher)
+    .groups = 'drop'  
   ) %>%
   arrange(desc(proportion))
 
 ggplot(liberal_votes_by_education, aes(x = reorder(education, proportion), y = proportion)) +
   geom_point() +
   geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.2) +
-  coord_flip() +  # Flip the axes to have education levels on the y-axis
-  labs(x = "Proportion", y = "Education", title = "Proportion of Votes for Liberal by Education Level") +
+  coord_flip() + 
+  labs(x = "Proportion", y = "Education") +
   theme_minimal()
 
 ```
+@fig-liberal-votes-by-education depicts the estimated proportions of liberal votes across different education levels. Each point on the graph represents the mean proportion of votes for the Liberal party within each educational category. The horizontal error bars signify the confidence intervals around these estimates, indicating the degree of uncertainty or the range within which the true proportion is likely to fall.
 
+The y-axis categorizes education into 'Low Education', 'Some Education', and 'High Education'. The x-axis measures the proportion of votes, with the plotted points reflecting the central tendency of votes for the Liberal party within each education group. Notably, the confidence intervals for 'Some Education' and 'High Education' are narrow, suggesting a higher degree of certainty in these estimates, whereas the 'Low Education' group exhibits a wider interval, denoting greater uncertainty.
 
+This visual analysis suggests a relationship between education level and voting patterns, with the 'High Education' group showing the highest estimated support for the Liberal party. In contrast, the 'Low Education' group appears to have the lowest, potentially indicating differing political preferences based on education. These insights could guide campaign strategies to address the educational divide in political support.
 
-
-
-
-## Plot of binary logistic regression models
 
 # Discussion
-Recent research highlights that the primary concerns for Canadian voters leading up to the 2025 election include the rising cost of living, housing, healthcare, the economy, and the environment. These issues are pivotal to the electorate, and the political parties’ stances on them are under intense scrutiny. Our analysis, drawn from five different polls, suggests a marginal preference for the Conservative Party over the Liberal Party. This trend is echoed in Barik's 2023 article, which indicates a public perception of the Conservative Party's superior handling of these key issues. Thus, our working hypothesis posits that the Conservative Party holds a slender advantage in the race for the upcoming election[@Barik_2023].
 
-For our model development, we chose predictors from census and survey data, refined through thorough research and reflecting the public's primary concerns. We proceeded with **binary logistic regression models**—one for each major party—to predict voter preferences based on complex social backgrounds. After refining the models using Akaike's Information Criteria to eliminate superfluous predictors, we established age, province, religion, education, and pre-tax income as our final variables.
+Recent research highlights that the primary concerns for Canadian voters leading up to the 2025 election include the rising cost of living, housing, healthcare, the economy, and the environment.
+These issues are pivotal to the electorate, and the political parties’ stances on them are under intense scrutiny.
+Our analysis, drawn from five different polls, suggests a marginal preference for the Conservative Party over the Liberal Party.
+This trend is echoed in Barik's 2023 article, which indicates a public perception of the Conservative Party's superior handling of these key issues.
+Thus, our working hypothesis posits that the Conservative Party holds a slender advantage in the race for the upcoming election[@Barik_2023].
 
-Post-stratification was applied to these predictors, revealing that the Conservative Party has a projected win probability of 25%, marginally outpacing the Liberal Party's 24.9%. These projections reinforce our initial hypothesis that the Conservative Party is the slight favorite for the 2025 election, based on our analysis of the data at hand. Our findings are in line with prior research, indicating that the main electoral contest will be between the Conservative and Liberal parties.
+For our model development, we chose predictors from census and survey data, refined through thorough research and reflecting the public's primary concerns.
+We proceeded with **binary logistic regression models**—one for each major party—to predict voter preferences based on complex social backgrounds.
+After refining the models using Akaike's Information Criteria to eliminate superfluous predictors, we established age, province, religion, education, and pre-tax income as our final variables.
+
+Post-stratification was applied to these predictors, revealing that the Conservative Party has a projected win probability of 25%, marginally outpacing the Liberal Party's 24.9%.
+These projections reinforce our initial hypothesis that the Conservative Party is the slight favorite for the 2025 election, based on our analysis of the data at hand.
+Our findings are in line with prior research, indicating that the main electoral contest will be between the Conservative and Liberal parties.
 
 ## Consideration of Potential Bias
-One limitation we noted was the age of participants in the data from 2021. Participants under 18 then are of voting age now, in 2025. We opted to retain these young individuals in our dataset, hypothesizing that their burgeoning political views would mature by the election year. Nonetheless, the potential impact of their age on our prediction model merits further attention in subsequent studies.
+
+One limitation we noted was the age of participants in the data from 2021.
+Participants under 18 then are of voting age now, in 2025.
+We opted to retain these young individuals in our dataset, hypothesizing that their burgeoning political views would mature by the election year.
+Nonetheless, the potential impact of their age on our prediction model merits further attention in subsequent studies.
 
 ## Pathways for Enhanced Predictive Accuracy
-Our endeavor has shed light on the inherent complexities of electoral forecasting. The dynamic and deeply personal nature of voting behavior, compounded by ever-shifting political landscapes, renders the task formidable. For future projections, expanding the set of predictors could refine our model's accuracy, mitigating the risk of overlooking significant variables.
 
-In conclusion, our binary logistic regression approach, supplemented with post-stratification, has yielded a data-driven forecast for the 2025 Canadian Election. Aligning with Barik’s analysis and multiple polls, our findings suggest the Conservative Party is poised for a narrow victory over the Liberal Party, informed by an intricate blend of sociopolitical factors and current Canadian sentiment[@Barik_2023].
+Our endeavor has shed light on the inherent complexities of electoral forecasting.
+The dynamic and deeply personal nature of voting behavior, compounded by ever-shifting political landscapes, renders the task formidable.
+For future projections, expanding the set of predictors could refine our model's accuracy, mitigating the risk of overlooking significant variables.
+
+In conclusion, our binary logistic regression approach, supplemented with post-stratification, has yielded a data-driven forecast for the 2025 Canadian Election.
+Aligning with Barik’s analysis and multiple polls, our findings suggest the Conservative Party is poised for a narrow victory over the Liberal Party, informed by an intricate blend of sociopolitical factors and current Canadian sentiment[@Barik_2023].
 
 # Appendix {.unnumbered}
 
@@ -821,15 +822,7 @@ In conclusion, our binary logistic regression approach, supplemented with post-s
 
 ## Posterior predictive check
 
-
-
-
-
 \newpage
-
-
-
-
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.width=8, fig.height=6}
 library(bayesplot)
@@ -869,17 +862,6 @@ pp_plot
 
 ```
 
-
-
-
-
-
-
-
-
-
-
-
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.width=8, fig.height=6}
 
 prior_covariates <- normal(location = 0, scale = 2.5, autoscale = FALSE)
@@ -915,24 +897,7 @@ pp_plot_conservative
 
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-@fig-liberal-model
-\newpage
+@fig-liberal-model \newpage
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
 
@@ -944,7 +909,6 @@ cons_CI$upr <- cons_CI$cons_predictions + 1.96 * sqrt(cons_CI$cons_predictions *
 
 cons_CI$observation <- 1:nrow(cons_CI)
 ```
-
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
 
@@ -962,10 +926,6 @@ lib_CI$observation <- seq_len(nrow(lib_CI))
 
 ```
 
-
-
-
-
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 lib_predictions <- predict(step_lib, newdata = step_lib_counts, type = "response", interval = "confidence")
 lib_CI <- data.frame(lib_predictions)
@@ -977,21 +937,12 @@ lib_CI$observation <- 1:nrow(lib_CI)
 
 ```
 
-
-
-
-
-
-
-
-
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
 ggplot(cons_CI, aes(x = cons_predictions)) +
   geom_density(alpha = 0.5, fill = "blue") +
   labs(x = "Predicted Probability", y = "Density", title = "Plot.9 The Density Plot for Predicted Probabilities for Conservative")
 ```
-
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -1001,11 +952,7 @@ ggplot(lib_CI, aes(x = lib_predictions, fill = "Liberal")) +
   labs(x = "Predicted Probability", y = "Density", title = "Plot.10 The Density Plot for Predicted Probabilities for Liberal")
 ```
 
-
-
-
-@fig-conservative-posterior 
-\newpage
+@fig-conservative-posterior \newpage
 
 ## Diagnostics
 
