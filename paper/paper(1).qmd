@@ -1,7 +1,7 @@
 ---
 title: "Predicting Probability of Participants' Vote of Conservative and Liberty in 2025 Canadian election "
 title-block-banner: true
-abstract: "ojjojojojljk,mkmk."
+abstract: "In our study, we use binary logistic regression to analyze voter preferences for Canada's Conservative and Liberal parties based on demographic and socioeconomic factors, adjusting the models with the AIC for optimal predictor selection. The Canadian electoral system elects parliamentarians through a multi-step process where, unless a candidate achieves an outright majority, votes are redistributed from the lowest-ranking candidates until one secures 50%. The Liberal Party plans to increase its refugee quota to 15% of all immigrants and admit 500,000 migrants annually by 2025. The Conservative Party emphasizes economic growth and attracting skilled immigrants. Our hypothesis predicts a likely Conservative victory in the 2025 elections, with the Liberals closely behind, based on trends and electoral mechanics. This analysis uses post-stratification to enhance the representativeness and accuracy of our predictions."
 thanks: "Code and data supporting this analysis are available at: https://github.com/CSCmaster/Final-Project"
 author: "Jingyi Shen"
 date: today
@@ -44,9 +44,9 @@ The government's ambitious immigration plan aims to admit 500,000 migrants annua
 The Conservative Party, with a focus on economic prosperity, emphasizes attracting highly skilled immigrants while addressing concerns like living costs and housing issues[@Elections_2023].
 
 ## Hypothesis
-
+To enhance control and prevention of illegal immigration, the Liberal Party has suggested modifications to the Immigration and Refugee Protection Act. They propose establishing an annual refugee quota of 250, specifically aimed at supporting human rights defenders, journalists, and humanitarian workers seeking safety and resettlement in Canada. Looking ahead, the Liberal Party intends to incrementally increase this refugee quota, aiming for refugees to comprise 15% of all immigrants. Conversely, the share of economic immigrants is planned to decrease to 58%, while the family reunification immigrant ratio will remain constant. These proportions are expected to be maintained over the next two years. Moreover, the Canadian national government recently unveiled an ambitious plan to admit 500,000 migrants annually by 2025, looking for nearly 1.5 million newcomers in Canada within the next three years (Canada's Immigration Levels Plan 2024-2026). Historically, the Liberal government's immigration strategy tends to be more permissive, offering broader entry routes compared to that of the Conservative Party[@Nakhaie_2006].
 Based on our analysis of historical trends, governmental policies, and electoral procedures, our hypothesis aligns with the prevailing expectation that the Conservatives will emerge as the likely winners in the 2025 election.
-**We anticipate that the Conservatives will likely secure the highest number of votes, with the Liberals expected to closely follow in second place.** Our research indicates that the vote-counting process in Canada significantly influences the outcome, as voters do not directly elect a specific prime minister candidate.
+**We anticipate that the Liberals will likely secure the highest number of votes, with the Conservatives expected to closely follow in second place.** Our research indicates that the vote-counting process in Canada significantly influences the outcome, as voters do not directly elect a specific prime minister candidate.
 Initially, all votes are tallied based on first preferences.
 If a candidate obtains 50% of the vote, they win.
 If not, the candidate with the fewest votes is eliminated[@Elections_2023].
@@ -56,15 +56,7 @@ Hence, our objective is to forecast the election probabilities for the Conservat
 
 ## Terminology
 
-In this paper, I used binary logistic regression models to forecast the likelihood of individuals affiliating with the Conservative or Liberal parties.
-Binary logistic regression is a statistical technique tailored for predicting binary outcomes, where the variable under consideration has two possible results.
-In our study, these outcomes represent the probability of individuals aligning with each of the two parties.
-Each party's likelihood will be predicted through separate logistic regression models, with the response variables indicating whether individuals vote for the corresponding party or not.
-The predictors used in these models include age, province, education, religion, and income before tax.
-The variable "sex" will be initially included but later removed after AIC model testing, as further elaborated in the model selection section.
-This regression approach is particularly advantageous when there's a nonlinear relationship between independent and dependent variables, especially in scenarios with categorical dependent variables like ours.
-Additionally, we will incorporate post-stratification in our analysis to enhance accuracy.
-Post-stratification helps refine precision estimates by ensuring that the sample is more representative of the entire population.
+In this paper, I used binary logistic regression models to forecast the likelihood of individuals affiliating with the Conservative or Liberal parties.Binary logistic regression is a statistical technique tailored for predicting binary outcomes, where the variable under consideration has two possible results. In our study, these outcomes represent the probability of individuals aligning with each of the two parties.Each party's likelihood will be predicted through separate logistic regression models, with the response variables indicating whether individuals vote for the corresponding party or not. The predictors used in these models include age, province, education, religion, and income before tax. The variable "sex" will be initially included but later removed after AIC model testing, as further elaborated in the model selection section. This regression approach is particularly advantageous when there's a nonlinear relationship between independent and dependent variables, especially in scenarios with categorical dependent variables like ours. Additionally, we will incorporate post-stratification in our analysis to enhance accuracy. Post-stratification helps refine precision estimates by ensuring that the sample is more representative of the entire population. We utilize this technique to predict the probability of voter shares for the Liberal or Conservative parties in the upcoming election.
 
 # Data
 
@@ -882,9 +874,6 @@ pp_plot
 
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide', fig.width=8, fig.height=6}
-library(bayesplot)
-library(rstanarm)
-
 
 prior_covariates <- normal(location = 0, scale = 2.5, autoscale = FALSE)
 prior_intercept <- normal(0, 2.5)
@@ -899,7 +888,6 @@ conservative_model <- stan_glm(
   iter = 2000
 )
 
-# Generate the posterior vs. prior plot for the conservative model
 pp_plot_conservative <- posterior_vs_prior(conservative_model) +
   theme_minimal() +
   scale_color_brewer(palette = "Set1") +
@@ -939,8 +927,8 @@ pp_plot_conservative
 @fig-liberal-model
 \newpage
 
-```{r}
-#Cons CI plot
+```{r echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+
 cons_predictions <- predict(step_cons, newdata = step_cons_counts, type = "response", interval = "confidence")
 cons_CI <- data.frame(cons_predictions)
 
@@ -951,26 +939,18 @@ cons_CI$observation <- 1:nrow(cons_CI)
 ```
 
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-# Make sure 'sex' is part of the group_by when creating step_lib_counts
+```{r echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+
 step_lib_counts <- cleaned_survey_data %>%
   group_by(age, sex, province, education, religion, income_before_tax) %>%
   summarise(N_j=n(), .groups = 'drop')  # Use .groups = 'drop' to remove the grouping
 
-# Now the step_lib_counts has a 'sex' column that matches with the model's predictors
-# You can proceed with prediction
+
 lib_predictions <- predict(step_lib, newdata = step_lib_counts, type = "response")
-
-# After prediction, if you want to calculate confidence intervals manually, make sure
-# the calculations are vectorized and account for the grouped structure of your data
-
-# Assuming that N_j is the count of observations for each group in your summarized dataset
 lib_CI <- data.frame(lib_predictions)
 lib_CI$lwr <- lib_CI$lib_predictions - 1.96 * sqrt(lib_CI$lib_predictions * (1 - lib_CI$lib_predictions) / step_lib_counts$N_j)
 lib_CI$upr <- lib_CI$lib_predictions + 1.96 * sqrt(lib_CI$lib_predictions * (1 - lib_CI$lib_predictions) / step_lib_counts$N_j)
 
-# Here we don't need to create an 'observation' column because the plot will use grouped data
-# If you do want an 'observation' identifier, ensure it's a sequence within each group
 lib_CI$observation <- seq_len(nrow(lib_CI))
 
 ```
