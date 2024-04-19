@@ -13,9 +13,9 @@ The repo is structured as:
 -   `data/analysis_data` contains the cleaned dataset that was constructed.
 -   `models` contains fitted models of both Conservative and liberal model. 
 -   `other` contains details about LLM chat interactions, and sketches.
--   `paper` provided include the materials used in creating the paper, such as the Quarto document and the reference bibliography file, along with the PDF version of the paper. 
+-   `paper` provided include the materials used in creating the paper, such as the Quarto document and the reference bibliography file, along with the PDF version of the paper and the datasheet. 
 -   `scripts` contains the R scripts used to simulate, download, test and clean data, the model is also located there.
 
 
 ## Statement on LLM usage
-The data analysis, model, data summary measures were written with the help of ChatGPT 4.0 and the entire chat history is available in other/chat_with_GPT.txt.
+The data analysis, model, data summary measures and datasheet were written with the help of ChatGPT 4.0 and the entire chat history is available in other/chat_with_GPT.txt.
